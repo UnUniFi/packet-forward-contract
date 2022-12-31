@@ -1,4 +1,5 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
+use cosmwasm_std::Coin;
 
 #[cw_serde]
 pub struct InstantiateMsg {
@@ -7,8 +8,22 @@ pub struct InstantiateMsg {
 
 #[cw_serde]
 pub enum ExecuteMsg {
-    Increment {},
-    Reset { count: i32 },
+    Swap {
+        amount: Coin,
+        routes: Vec<SwapRoute>,
+    },
+}
+
+#[cw_serde]
+pub struct SwapRoute {
+    pair_name: String,
+    direction: SwapDirection,
+}
+
+#[cw_serde]
+pub enum SwapDirection {
+    BaseToQuote,
+    QuoteToBase,
 }
 
 #[cw_serde]

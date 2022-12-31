@@ -63,7 +63,13 @@ mod tests {
         fn count() {
             let (mut app, cw_template_contract) = proper_instantiate();
 
-            let msg = ExecuteMsg::Increment {};
+            let msg = ExecuteMsg::Swap {
+                amount: Coin {
+                    denom: "".to_string(),
+                    amount: Uint128::new(0),
+                },
+                routes: vec![],
+            };
             let cosmos_msg = cw_template_contract.call(msg).unwrap();
             app.execute(Addr::unchecked(USER), cosmos_msg).unwrap();
         }
