@@ -36,7 +36,7 @@ pub enum QueryMsg {
 #[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
 pub struct Route {
     pub src_channel_id: String,
-    // pub src_port_id: String,
+    pub src_port_id: String,
     // pub dst_channel_id: String,
     // pub dst_port_id: String,
     pub dst_bech32_prefix: String,

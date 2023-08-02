@@ -4,7 +4,7 @@ use crate::state::{Config, CONFIG};
 use bech32::{self, ToBase32, Variant};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
-use cosmwasm_std::{Coin, DepsMut, Env, IbcMsg, MessageInfo, Response};
+use cosmwasm_std::{Coin, DepsMut, Env, IbcMsg, IbcTimeout, MessageInfo, Response};
 use cw_utils::one_coin;
 use ibc_denom_resolver::error::ContractError;
 use ibc_denom_resolver::resolver::{ExecuteMsg, InstantiateMsg, Route, SwapMsg, UpdateConfigMsg};
@@ -90,7 +90,36 @@ struct PacketMemo {
     next: Option<Box<PacketMemo>>,
 }
 
-fn construct_packet_memo(routes: &[Route]) -> PacketMemo {}
+fn construct_packet_memo(
+    address_bytes: &[u8],
+    routes: &[Route],
+) -> Result<Box<PacketMemo>, ContractError> {
+    let mut memo: Box<PacketMemo>;
+    let mut next_memo: &mut Option<Box<PacketMemo>> = &mut None;
+
+    for (i, route) in routes.iter().enumerate() {
+        *next_memo = Some(Box::new(PacketMemo {
+            receiver: bech32::encode(
+                &route.dst_bech32_prefix,
+                address_bytes.to_base32(),
+                Variant::Bech32,
+            )?,
+            port: route.src_port_id,
+            channel: route.src_channel_id,
+            timeout: None,
+            retries: None,
+            next: None,
+        }));
+
+        if i == 0 {
+            memo = next_memo.unwrap()
+        }
+
+        next_memo = &mut next_memo.as_mut().unwrap().next;
+    }
+
+    Ok(memo)
+}
 
 pub fn execute_swap(
     deps: DepsMut,
@@ -113,7 +142,7 @@ pub fn execute_swap(
         Variant::Bech32,
     );
 
-    let memo = construct_packet_memo(&config.routes);
+    let memo = construct_packet_memo(address_bytes, &config.routes);
     let data = FungibleTokenPacketData {
         denom: coin.denom,
         amount: fee_subtracted_amount,
