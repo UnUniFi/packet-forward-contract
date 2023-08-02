@@ -133,7 +133,7 @@ pub fn execute_swap(
     let fee_subtracted_amount = coin
         .amount
         .checked_sub(config.fee.commission_rate.mul(coin.amount))
-        .or(ContractError::InsufficientFunds {})?;
+        .or(Err(ContractError::InsufficientFunds {}))?;
 
     let address_bytes = info.sender.as_bytes();
     let receiver = bech32::encode(
@@ -142,18 +142,18 @@ pub fn execute_swap(
         Variant::Bech32,
     );
 
-    let memo = construct_packet_memo(address_bytes, &config.routes);
+    let memo = construct_packet_memo(address_bytes, &config.routes)?;
     let data = FungibleTokenPacketData {
         denom: coin.denom,
         amount: fee_subtracted_amount,
         sender: info.sender.to_string(),
         receiver: receiver,
-        memo: serde_json::to_string(&memo)?,
+        memo: serde_json::to_string(&memo).unwrap(), // TODO: handle error
     };
 
     let mut response = Response::new().add_message(IbcMsg::SendPacket {
         channel_id: config.routes[0].src_channel_id,
-        data: (),
+        data: (), // protobuf encoded data: FungibleTokenPacketData
         timeout: (),
     });
 
