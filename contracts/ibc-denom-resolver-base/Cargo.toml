@@ -1,0 +1,20 @@
+[package]
+name = "ibc-denom-resolver-base"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+ibc-denom-resolver = { path = "../../packages/ibc-denom-resolver" }
+bech32 = "0.9.0"
+cw-utils = "1.0.1"
+cw20 = "1.1.0"
+cosmwasm-std = { version = "1.2.5", features = ["stargate"] }
+cw-storage-plus = { version = "1.1.0" }
+schemars = "0.8.10"
+serde = { version = "1.0.144", default-features = false, features = ["derive"] }
+thiserror = { version = "1.0.23" }
+protobuf = { version = "3.2.0", features = ["with-bytes"] }
+prost = "0.11"
+prost-types = "0.11"
