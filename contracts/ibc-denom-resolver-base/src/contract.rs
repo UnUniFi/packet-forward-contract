@@ -92,18 +92,24 @@ struct PacketMemo {
 
 fn construct_packet_memo(
     address_bytes: &[u8],
+    last_recipient: String,
     routes: &[Route],
 ) -> Result<Box<PacketMemo>, ContractError> {
     let mut memo: Box<PacketMemo>;
     let mut next_memo: &mut Option<Box<PacketMemo>> = &mut None;
 
     for (i, route) in routes.iter().enumerate() {
-        *next_memo = Some(Box::new(PacketMemo {
-            receiver: bech32::encode(
+        let receiver = if i < routes.len() - 1 {
+            bech32::encode(
                 &route.dst_bech32_prefix,
                 address_bytes.to_base32(),
                 Variant::Bech32,
-            )?,
+            )?
+        } else {
+            last_recipient
+        };
+        *next_memo = Some(Box::new(PacketMemo {
+            receiver: receiver,
             port: route.src_port_id,
             channel: route.src_channel_id,
             timeout: None,
@@ -123,7 +129,7 @@ fn construct_packet_memo(
 
 pub fn execute_swap(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     info: MessageInfo,
     coin: Coin,
     msg: SwapMsg,
@@ -140,13 +146,13 @@ pub fn execute_swap(
         &config.routes[0].dst_bech32_prefix,
         address_bytes.to_base32(),
         Variant::Bech32,
-    );
+    )?;
 
-    let memo = construct_packet_memo(address_bytes, &config.routes)?;
+    let memo = construct_packet_memo(address_bytes, msg.recipient, &config.routes)?;
     let data = FungibleTokenPacketData {
         denom: coin.denom,
         amount: fee_subtracted_amount,
-        sender: info.sender.to_string(),
+        sender: env.contract.address.to_string(),
         receiver: receiver,
         memo: serde_json::to_string(&memo).unwrap(), // TODO: handle error
     };
