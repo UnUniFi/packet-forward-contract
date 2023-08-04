@@ -1,6 +1,6 @@
-use crate::types::{Config, Memo, Request};
+use crate::types::{Config, Request};
 use cosmwasm_schema::{cw_serde, QueryResponses};
-use cosmwasm_std::IbcTimeout;
+use std::time::Duration;
 
 #[cw_serde]
 pub struct InstantiateMsg {}
@@ -22,8 +22,8 @@ pub struct ForwardMsg {
     pub receiver: String,
     pub port: String,
     pub channel: String,
-    pub timeout: IbcTimeout,
-    pub memo: Option<Memo>,
+    pub timeout: Duration,
+    pub memo: String,
 }
 
 #[cw_serde]

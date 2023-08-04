@@ -1,5 +1,5 @@
 use crate::error::ContractError;
-use crate::msg::UpdateConfigMsg;
+use crate::msgs::UpdateConfigMsg;
 use crate::state::CONFIG;
 use crate::types::Config;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};

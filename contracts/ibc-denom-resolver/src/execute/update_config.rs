@@ -1,4 +1,4 @@
-use crate::{error::ContractError, msg::UpdateConfigMsg, state::CONFIG, types::Config};
+use crate::{error::ContractError, msgs::UpdateConfigMsg, state::CONFIG, types::Config};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 /// Only owner can execute it.

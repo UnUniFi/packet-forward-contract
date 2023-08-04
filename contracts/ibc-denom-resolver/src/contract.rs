@@ -1,16 +1,16 @@
 use crate::{
     error::ContractError,
     execute::{swap::execute_swap, update_config::execute_update_config},
-    msg::{ExecuteMsg, InstantiateMsg},
+    msgs::{ExecuteMsg, InstantiateMsg, QueryMsg},
+    query::config::query_config,
     state::CONFIG,
     types::Config,
 };
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
-use cosmwasm_std::{Coin, DepsMut, Env, MessageInfo, Response};
+use cosmwasm_std::{to_binary, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw_utils::one_coin;
 
-//Initialize the contract.
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
     deps: DepsMut,
@@ -25,7 +25,7 @@ pub fn instantiate(
     let config = Config {
         owner: info.sender,
         denom: msg.denom,
-        timeout_seconds: msg.timeout_seconds,
+        timeout: msg.timeout,
         routes: msg.routes,
         fee: msg.fee,
     };
@@ -35,7 +35,6 @@ pub fn instantiate(
     Ok(Response::new())
 }
 
-//Execute the handle messages.
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn execute(
     deps: DepsMut,
@@ -49,5 +48,12 @@ pub fn execute(
             let coin: Coin = one_coin(&info).map_err(|err| ContractError::Payment(err))?;
             execute_swap(deps, env, info, coin, msg)
         }
+    }
+}
+
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
+    match msg {
+        QueryMsg::Config {} => to_binary(&query_config(deps)?),
     }
 }

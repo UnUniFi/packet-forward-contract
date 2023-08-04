@@ -34,4 +34,8 @@ pub struct MsgTransfer {
 /// MsgTransferResponse defines the Msg/Transfer response type.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct MsgTransferResponse {}
+pub struct MsgTransferResponse {
+    /// sequence number of the transfer packet sent
+    #[prost(uint64, tag = "1")]
+    pub sequence: u64,
+}

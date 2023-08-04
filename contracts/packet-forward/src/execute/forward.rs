@@ -1,12 +1,13 @@
 use crate::error::ContractError;
-use crate::msg::ForwardMsg;
-use crate::proto::ibc::applications::transfer::v1::MsgTransfer;
+use crate::msgs::ForwardMsg;
+use crate::proto::ibc::applications::transfer::v1::{MsgTransfer, MsgTransferResponse};
 use crate::proto::traits::MessageExt;
-use crate::state::{FAILED, PENDING, REQUEST_ID};
+use crate::state::{INITIATED_REQUESTS, PENDING_REQUESTS, REQUEST_ID};
+use crate::types::Request;
 use cosmwasm_std::{
-    Binary, Coin, CosmosMsg, DepsMut, Env, MessageInfo, ReplyOn, Response, StdResult, SubMsg,
-    SubMsgResponse,
+    Binary, Coin, CosmosMsg, DepsMut, Env, MessageInfo, ReplyOn, Response, SubMsg, SubMsgResponse,
 };
+use prost::Message;
 
 const TRANSFER_PORT: &str = "transfer";
 
@@ -20,10 +21,9 @@ pub fn execute_forward(
     let id = REQUEST_ID.load(deps.storage)?;
     REQUEST_ID.save(deps.storage, &(id + 1))?;
 
-    let memo = match msg.memo {
-        Some(memo) => serde_json_wasm::to_string(&memo).unwrap(),
-        None => "".to_string(),
-    };
+    let emergency_claimer = deps.api.addr_validate(&msg.emergency_claimer)?;
+
+    INITIATED_REQUESTS.save(deps.storage, id, &(emergency_claimer, coin.clone()))?;
 
     let msg_any = (MsgTransfer {
         source_port: TRANSFER_PORT.to_string(),
@@ -35,8 +35,8 @@ pub fn execute_forward(
         sender: env.contract.address.to_string(),
         receiver: msg.receiver.clone(),
         timeout_height: None,
-        timeout_timestamp: 0,
-        memo,
+        timeout_timestamp: env.block.time.nanos() + msg.timeout.as_nanos() as u64,
+        memo: msg.memo,
     })
     .to_any()?;
 
@@ -53,16 +53,31 @@ pub fn execute_forward(
     Ok(response)
 }
 
-pub fn handle_reply_ok(deps: DepsMut, id: u64, _res: SubMsgResponse) -> StdResult<Response> {
-    PENDING.remove(deps.storage, id);
+pub fn handle_reply_ok(
+    deps: DepsMut,
+    id: u64,
+    res: SubMsgResponse,
+) -> Result<Response, ContractError> {
+    let transfer_response = MsgTransferResponse::decode(&res.data.unwrap().0[..])?;
+
+    let (addr, coin) = INITIATED_REQUESTS.load(deps.storage, id)?;
+    PENDING_REQUESTS.save(
+        deps.storage,
+        (&addr, id),
+        &Request {
+            id,
+            sequence: transfer_response.sequence,
+            emergency_claimer: addr.clone(),
+            coin,
+        },
+    )?;
+    INITIATED_REQUESTS.remove(deps.storage, id);
 
     Ok(Response::new())
 }
 
-pub fn handle_reply_err(deps: DepsMut, id: u64, _err: String) -> StdResult<Response> {
-    let request = PENDING.load(deps.storage, id)?;
-    FAILED.save(deps.storage, id, &request)?;
-    PENDING.remove(deps.storage, id);
+pub fn handle_reply_err(deps: DepsMut, id: u64, _err: String) -> Result<Response, ContractError> {
+    INITIATED_REQUESTS.remove(deps.storage, id);
 
     Ok(Response::new())
 }
