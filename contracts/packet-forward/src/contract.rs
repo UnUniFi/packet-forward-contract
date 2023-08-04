@@ -1,13 +1,14 @@
-use crate::state::{Config, CONFIG, FAILED, PENDING, REQUEST_ID};
+use crate::error::ContractError;
+use crate::msg::{ExecuteMsg, ForwardMsg, InstantiateMsg, UpdateConfigMsg};
+use crate::state::{CONFIG, FAILED, PENDING, REQUEST_ID};
+use crate::types::Config;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    Coin, CosmosMsg, DepsMut, Env, IbcMsg, IbcTimeout, MessageInfo, Reply, ReplyOn, Response,
-    StdResult, SubMsg, SubMsgResponse, SubMsgResult,
+    Coin, CosmosMsg, DepsMut, Env, IbcMsg, MessageInfo, Reply, ReplyOn, Response, StdResult,
+    SubMsg, SubMsgResponse, SubMsgResult,
 };
 use cw_utils::one_coin;
-use packet_forward::error::ContractError;
-use packet_forward::msg::{ExecuteMsg, ForwardMsg, InstantiateMsg, UpdateConfigMsg};
 
 //Initialize the contract.
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -79,14 +80,19 @@ pub fn execute_forward(
     let id = REQUEST_ID.load(deps.storage)?;
     REQUEST_ID.save(deps.storage, &(id + 1))?;
 
+    let memo = match msg.memo {
+        Some(memo) => Some(serde_json_wasm::to_string(&memo).unwrap()),
+        None => None,
+    };
+
     let mut response = Response::new().add_submessage(SubMsg {
         id,
         msg: CosmosMsg::Ibc(IbcMsg::Transfer {
             channel_id: msg.channel,
             to_address: msg.receiver,
             amount: coin,
-            timeout: IbcTimeout::with_timestamp(env.block.time.plus_seconds(300)),
-            memo: serde_json::to_string(&memo).unwrap(), // TODO: handle error
+            timeout: msg.timeout,
+            memo,
         }),
         gas_limit: None,
         reply_on: ReplyOn::Always,
