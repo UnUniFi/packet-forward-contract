@@ -1,12 +1,17 @@
+use crate::error::ContractError;
+use crate::msg::SwapMsg;
 use crate::state::CONFIG;
+use crate::types::{Destination, Route};
 use bech32::{self, ToBase32, Variant};
+use cosmwasm_std::{Binary, CosmosMsg};
 #[cfg(not(feature = "library"))]
-use cosmwasm_std::{Coin, DepsMut, Env, IbcMsg, IbcTimeout, MessageInfo, Response, Timestamp};
-use ibc_denom_resolver::msg::SwapMsg;
-use ibc_denom_resolver::types::Destination;
-use ibc_denom_resolver::{error::ContractError, types::Route};
+use cosmwasm_std::{Coin, DepsMut, Env, IbcTimeout, MessageInfo, Response, Timestamp};
 use packet_forward::msg::ForwardMsg;
+use packet_forward::proto::ibc::applications::transfer::v1::MsgTransfer;
+use packet_forward::proto::traits::MessageExt;
 use packet_forward::types::{IbcHooksMetadata, Memo, Msg, PacketForwardMetadata};
+
+const TRANSFER_PORT: &str = "transfer";
 
 fn construct_packet_memo(
     address_bytes: &[u8],
@@ -87,7 +92,7 @@ pub fn execute_swap(
     let timeout = IbcTimeout::with_timestamp(Timestamp::from_seconds(config.timeout_seconds));
     let first_route_info = construct_packet_memo(
         &info.sender.as_bytes(),
-        msg.recipient,
+        msg.recipient.clone(),
         &config.routes[..1],
         &timeout,
     )?
@@ -98,35 +103,54 @@ pub fn execute_swap(
         &config.routes[1..],
         &timeout,
     )?;
-
-    let msg = if let Some(forward) = first_route_info.forward {
-        IbcMsg::Transfer {
-            channel_id: forward.channel.clone(),
-            to_address: forward.receiver,
-            amount: coin,
-            timeout,
-            memo: match memo {
-                Some(memo) => Some(serde_json_wasm::to_string(memo).unwrap()),
-                None => None,
-            },
-        }
-    } else if let Some(wasm) = first_route_info.wasm {
-        let forward_msg =
-            serde_json_wasm::from_str::<ForwardMsg>(wasm.msg.raw_message_fields.as_str()).unwrap();
-
-        IbcMsg::Transfer {
-            channel_id: forward_msg.channel.clone(),
-            to_address: forward_msg.receiver.clone(),
-            amount: coin,
-            timeout,
-            memo: match memo {
-                Some(memo) => Some(serde_json_wasm::to_string(memo).unwrap()),
-                None => None,
-            },
-        }
+    let memo = match memo {
+        Some(memo) => serde_json_wasm::to_string(&memo).unwrap(),
+        None => "".to_string(),
     };
 
-    let mut response = Response::new().add_message(msg);
+    let msg = if let Some(forward) = first_route_info.forward {
+        Ok(MsgTransfer {
+            source_port: TRANSFER_PORT.to_string(),
+            source_channel: forward.channel.clone(),
+            token: Some(packet_forward::proto::cosmos::base::v1beta1::Coin {
+                denom: coin.denom,
+                amount: coin.amount.to_string(),
+            }),
+            sender: env.contract.address.to_string(),
+            receiver: forward.receiver,
+            timeout_height: None,
+            timeout_timestamp: 0,
+            memo,
+        })
+    } else {
+        if let Some(wasm) = first_route_info.wasm {
+            let forward_msg =
+                serde_json_wasm::from_str::<ForwardMsg>(wasm.msg.raw_message_fields.as_str())
+                    .unwrap();
+
+            Ok(MsgTransfer {
+                source_port: TRANSFER_PORT.to_string(),
+                source_channel: forward_msg.channel.clone(),
+                token: Some(packet_forward::proto::cosmos::base::v1beta1::Coin {
+                    denom: coin.denom,
+                    amount: coin.amount.to_string(),
+                }),
+                sender: env.contract.address.to_string(),
+                receiver: forward_msg.receiver.clone(),
+                timeout_height: None,
+                timeout_timestamp: 0,
+                memo,
+            })
+        } else {
+            Err(ContractError::EmptyRoutes {})
+        }
+    }?;
+    let msg_any = msg.to_any()?;
+
+    let response = Response::new().add_message(CosmosMsg::Stargate {
+        type_url: msg_any.type_url,
+        value: Binary(msg_any.value),
+    });
 
     Ok(response)
 }

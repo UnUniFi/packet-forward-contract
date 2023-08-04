@@ -1,11 +1,13 @@
 use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, ForwardMsg, InstantiateMsg, UpdateConfigMsg};
+use crate::proto::ibc::applications::transfer::v1::MsgTransfer;
+use crate::proto::traits::MessageExt;
 use crate::state::{CONFIG, FAILED, PENDING, REQUEST_ID};
 use crate::types::Config;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    Coin, CosmosMsg, DepsMut, Env, IbcMsg, MessageInfo, Reply, ReplyOn, Response, StdResult,
+    Binary, Coin, CosmosMsg, DepsMut, Env, MessageInfo, Reply, ReplyOn, Response, StdResult,
     SubMsg, SubMsgResponse, SubMsgResult,
 };
 use cw_utils::one_coin;
@@ -16,7 +18,7 @@ pub fn instantiate(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
-    msg: InstantiateMsg,
+    _msg: InstantiateMsg,
 ) -> Result<Response, ContractError> {
     let config = Config { owner: info.sender };
 
@@ -71,29 +73,39 @@ pub fn execute_update_config(
 pub fn execute_forward(
     deps: DepsMut,
     env: Env,
-    info: MessageInfo,
+    _info: MessageInfo,
     coin: Coin,
     msg: ForwardMsg,
 ) -> Result<Response, ContractError> {
-    let config: Config = CONFIG.load(deps.storage)?;
-
     let id = REQUEST_ID.load(deps.storage)?;
     REQUEST_ID.save(deps.storage, &(id + 1))?;
 
     let memo = match msg.memo {
-        Some(memo) => Some(serde_json_wasm::to_string(&memo).unwrap()),
-        None => None,
+        Some(memo) => serde_json_wasm::to_string(&memo).unwrap(),
+        None => "".to_string(),
     };
 
-    let mut response = Response::new().add_submessage(SubMsg {
-        id,
-        msg: CosmosMsg::Ibc(IbcMsg::Transfer {
-            channel_id: msg.channel,
-            to_address: msg.receiver,
-            amount: coin,
-            timeout: msg.timeout,
-            memo,
+    let msg_any = (MsgTransfer {
+        source_port: "transfer".to_string(),
+        source_channel: msg.channel.clone(),
+        token: Some(crate::proto::cosmos::base::v1beta1::Coin {
+            denom: coin.denom,
+            amount: coin.amount.to_string(),
         }),
+        sender: env.contract.address.to_string(),
+        receiver: msg.receiver.clone(),
+        timeout_height: None,
+        timeout_timestamp: 0,
+        memo,
+    })
+    .to_any()?;
+
+    let response = Response::new().add_submessage(SubMsg {
+        id,
+        msg: CosmosMsg::Stargate {
+            type_url: msg_any.type_url,
+            value: Binary(msg_any.value),
+        },
         gas_limit: None,
         reply_on: ReplyOn::Always,
     });
@@ -109,13 +121,13 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> StdResult<Response> {
     }
 }
 
-fn handle_reply_ok(deps: DepsMut, id: u64, res: SubMsgResponse) -> StdResult<Response> {
+fn handle_reply_ok(deps: DepsMut, id: u64, _res: SubMsgResponse) -> StdResult<Response> {
     PENDING.remove(deps.storage, id);
 
     Ok(Response::new())
 }
 
-fn handle_reply_err(deps: DepsMut, id: u64, err: String) -> StdResult<Response> {
+fn handle_reply_err(deps: DepsMut, id: u64, _err: String) -> StdResult<Response> {
     let request = PENDING.load(deps.storage, id)?;
     FAILED.save(deps.storage, id, &request)?;
     PENDING.remove(deps.storage, id);

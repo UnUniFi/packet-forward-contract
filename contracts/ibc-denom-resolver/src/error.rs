@@ -10,6 +10,12 @@ pub enum ContractError {
     #[error("{0}")]
     Payment(#[from] PaymentError),
 
+    #[error("Proto encode error")]
+    EncodeError(#[from] prost::EncodeError),
+
+    #[error("Proto decode error")]
+    DecodeError(#[from] prost::DecodeError),
+
     #[error("Bech32 error")]
     Bech32(#[from] bech32::Error),
 

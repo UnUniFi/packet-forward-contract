@@ -1,8 +1,5 @@
-use crate::state::CONFIG;
+use crate::{error::ContractError, msg::UpdateConfigMsg, state::CONFIG, types::Config};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
-use ibc_denom_resolver::error::ContractError;
-use ibc_denom_resolver::msg::UpdateConfigMsg;
-use ibc_denom_resolver::types::Config;
 
 /// Only owner can execute it.
 pub fn execute_update_config(

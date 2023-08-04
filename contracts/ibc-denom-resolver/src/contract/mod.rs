@@ -3,14 +3,16 @@ pub mod execute_update_config;
 
 use self::execute_swap::execute_swap;
 use self::execute_update_config::execute_update_config;
-use crate::state::CONFIG;
+use crate::{
+    error::ContractError,
+    msg::{ExecuteMsg, InstantiateMsg},
+    state::CONFIG,
+    types::Config,
+};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{Coin, DepsMut, Env, MessageInfo, Response};
 use cw_utils::one_coin;
-use ibc_denom_resolver::error::ContractError;
-use ibc_denom_resolver::msg::{ExecuteMsg, InstantiateMsg};
-use ibc_denom_resolver::types::Config;
 
 //Initialize the contract.
 #[cfg_attr(not(feature = "library"), entry_point)]
