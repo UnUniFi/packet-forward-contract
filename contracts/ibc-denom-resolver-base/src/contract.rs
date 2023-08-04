@@ -1,15 +1,15 @@
-use std::ops::Mul;
-
 use crate::state::{Config, CONFIG};
 use bech32::{self, ToBase32, Variant};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
-use cosmwasm_std::{Coin, DepsMut, Env, IbcMsg, IbcTimeout, MessageInfo, Response};
+use cosmwasm_std::{Coin, DepsMut, Env, MessageInfo, Response, WasmMsg};
 use cw_utils::one_coin;
 use ibc_denom_resolver::error::ContractError;
-use ibc_denom_resolver::resolver::{ExecuteMsg, InstantiateMsg, Route, SwapMsg, UpdateConfigMsg};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
+use ibc_denom_resolver::msg::{
+    Destination, ExecuteMsg, InstantiateMsg, Route, SwapMsg, UpdateConfigMsg,
+};
+use packet_forward::msg::{ForwardMsg, IbcHooksMetadata, Memo, Msg, PacketForwardMetadata};
+use serde_json::value::RawValue;
 
 //Initialize the contract.
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -78,53 +78,66 @@ pub fn execute_update_config(
     Ok(resp)
 }
 
-/// https://medium.com/the-interchain-foundation/moving-beyond-simple-token-transfers-d42b2b1dc29b
-/// https://github.com/strangelove-ventures/packet-forward-middleware
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-struct PacketMemo {
-    receiver: String,
-    port: String,
-    channel: String,
-    timeout: Option<String>,
-    retries: Option<u32>,
-    next: Option<Box<PacketMemo>>,
-}
-
 fn construct_packet_memo(
     address_bytes: &[u8],
     last_recipient: String,
     routes: &[Route],
-) -> Result<Box<PacketMemo>, ContractError> {
-    let mut memo: Box<PacketMemo>;
-    let mut next_memo: &mut Option<Box<PacketMemo>> = &mut None;
+) -> Result<Option<Box<Memo>>, ContractError> {
+    let memo: &mut Option<Box<Memo>> = &mut None;
+    let mut receiver = last_recipient;
 
-    for (i, route) in routes.iter().enumerate() {
-        let receiver = if i < routes.len() - 1 {
-            bech32::encode(
-                &route.dst_bech32_prefix,
-                address_bytes.to_base32(),
-                Variant::Bech32,
-            )?
-        } else {
-            last_recipient
+    for route in routes.iter().rev() {
+        let address_in_dst = bech32::encode(
+            &route.dst_bech32_prefix,
+            address_bytes.to_base32(),
+            Variant::Bech32,
+        )
+        .unwrap();
+
+        match route.destination {
+            Destination::PacketForwardMiddleware {} => {
+                let next_child_memo = Box::new(Memo {
+                    forward: Some(PacketForwardMetadata {
+                        receiver: receiver,
+                        port: route.port,
+                        channel: route.channel,
+                        timeout: None,
+                        retries: None,
+                        next: *memo,
+                    }),
+                    wasm: None,
+                });
+                let next_receiver = address_in_dst;
+
+                receiver = next_receiver;
+                *memo = Some(next_child_memo);
+            }
+            Destination::IbcHooks { contract } => {
+                let next_child_memo = Box::new(Memo {
+                    forward: None,
+                    wasm: Some(IbcHooksMetadata {
+                        contract,
+                        msg: Msg {
+                            raw_message_fields: serde_json::to_string(&ForwardMsg {
+                                emergency_claimer: address_in_dst,
+                                port: route.port,
+                                channel: route.channel,
+                                receiver: receiver,
+                                memo: memo,
+                            })
+                            .unwrap(),
+                        },
+                    }),
+                });
+                let next_receiver = contract;
+
+                receiver = next_receiver;
+                *memo = Some(next_child_memo);
+            }
         };
-        *next_memo = Some(Box::new(PacketMemo {
-            receiver: receiver,
-            port: route.src_port_id,
-            channel: route.src_channel_id,
-            timeout: None,
-            retries: None,
-            next: None,
-        }));
-
-        if i == 0 {
-            memo = next_memo.unwrap()
-        }
-
-        next_memo = &mut next_memo.as_mut().unwrap().next;
     }
 
-    Ok(memo)
+    Ok(*memo)
 }
 
 pub fn execute_swap(
@@ -134,33 +147,10 @@ pub fn execute_swap(
     coin: Coin,
     msg: SwapMsg,
 ) -> Result<Response, ContractError> {
-    let config: Config = CONFIG.load(deps.storage)?;
-
-    let fee_subtracted_amount = coin
-        .amount
-        .checked_sub(config.fee.commission_rate.mul(coin.amount))
-        .or(Err(ContractError::InsufficientFunds {}))?;
-
-    let address_bytes = info.sender.as_bytes();
-    let receiver = bech32::encode(
-        &config.routes[0].dst_bech32_prefix,
-        address_bytes.to_base32(),
-        Variant::Bech32,
-    )?;
-
-    let memo = construct_packet_memo(address_bytes, msg.recipient, &config.routes)?;
-    let data = FungibleTokenPacketData {
-        denom: coin.denom,
-        amount: fee_subtracted_amount,
-        sender: env.contract.address.to_string(),
-        receiver: receiver,
-        memo: serde_json::to_string(&memo).unwrap(), // TODO: handle error
-    };
-
-    let mut response = Response::new().add_message(IbcMsg::SendPacket {
-        channel_id: config.routes[0].src_channel_id,
-        data: (), // protobuf encoded data: FungibleTokenPacketData
-        timeout: (),
+    let mut response = Response::new().add_message(WasmMsg::Execute {
+        contract_addr: (),
+        msg: (),
+        funds: (),
     });
 
     Ok(response)

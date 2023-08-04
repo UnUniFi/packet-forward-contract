@@ -1,12 +1,11 @@
 [package]
-name = "ibc-denom-resolver-base"
+name = "packet-forward-base"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ibc-denom-resolver = { path = "../../packages/ibc-denom-resolver" }
 packet-forward = { path = "../../packages/packet-forward" }
 bech32 = "0.9.0"
 cw-utils = "1.0.1"

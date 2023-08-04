@@ -453,6 +453,7 @@ dependencies = [
  "cw-utils",
  "cw20",
  "ibc-denom-resolver",
+ "packet-forward",
  "prost",
  "prost-types",
  "protobuf",
@@ -506,6 +507,42 @@ name = "opaque-debug"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
+
+[[package]]
+name = "packet-forward"
+version = "0.1.0"
+dependencies = [
+ "bech32",
+ "cosmwasm-std",
+ "cw-utils",
+ "cw20",
+ "prost",
+ "prost-types",
+ "protobuf",
+ "schemars",
+ "serde",
+ "serde_json",
+ "thiserror",
+]
+
+[[package]]
+name = "packet-forward-base"
+version = "0.1.0"
+dependencies = [
+ "bech32",
+ "cosmwasm-std",
+ "cw-storage-plus",
+ "cw-utils",
+ "cw20",
+ "packet-forward",
+ "prost",
+ "prost-types",
+ "protobuf",
+ "schemars",
+ "serde",
+ "serde_json",
+ "thiserror",
+]
 
 [[package]]
 name = "pkcs8"

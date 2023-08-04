@@ -1,3 +1,4 @@
+use cosmwasm_std::Coin;
 use cosmwasm_std::Decimal;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -34,12 +35,19 @@ pub enum QueryMsg {
 }
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
+pub enum Destination {
+    PacketForwardMiddleware,
+    IbcHooks {
+        contract: String,
+    },
+}
+
+#[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
 pub struct Route {
-    pub src_channel_id: String,
-    pub src_port_id: String,
-    // pub dst_channel_id: String,
-    // pub dst_port_id: String,
+    pub port: String,
+    pub channel: String,
     pub dst_bech32_prefix: String,
+    pub destination: Destination,
 }
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]

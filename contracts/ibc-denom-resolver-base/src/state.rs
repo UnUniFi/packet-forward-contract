@@ -1,5 +1,5 @@
 use cosmwasm_std::{Addr, Uint128};
-use ibc_denom_resolver::resolver::{FeeInfo, Route};
+use ibc_denom_resolver::msg::{FeeInfo, Route};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
