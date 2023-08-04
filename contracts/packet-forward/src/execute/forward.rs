@@ -59,14 +59,12 @@ pub fn handle_reply_ok(
     res: SubMsgResponse,
 ) -> Result<Response, ContractError> {
     let transfer_response = MsgTransferResponse::decode(&res.data.unwrap().0[..])?;
-
     let (addr, coin) = INITIATED_REQUESTS.load(deps.storage, id)?;
+
     PENDING_REQUESTS.save(
         deps.storage,
-        (&addr, id),
+        transfer_response.sequence,
         &Request {
-            id,
-            sequence: transfer_response.sequence,
             emergency_claimer: addr.clone(),
             coin,
         },

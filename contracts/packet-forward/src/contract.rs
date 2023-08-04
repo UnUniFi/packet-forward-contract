@@ -1,11 +1,12 @@
 use crate::error::ContractError;
 use crate::execute::forward::{execute_forward, handle_reply_err, handle_reply_ok};
 use crate::execute::update_config::execute_update_config;
+use crate::ibc_hooks::SudoMsg;
 use crate::msgs::{ExecuteMsg, InstantiateMsg, QueryMsg};
 use crate::query::config::query_config;
 use crate::query::failed_requests::query_failed_requests;
-use crate::query::pending_requests::query_pending_requests;
 use crate::state::CONFIG;
+use crate::sudo::ibc_lifecycle_complete::ibc_lifecycle_complete;
 use crate::types::Config;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
@@ -46,18 +47,24 @@ pub fn execute(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
+pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> Result<Response, ContractError> {
+    match msg.result {
+        SubMsgResult::Ok(res) => handle_reply_ok(deps, msg.id, res),
+        SubMsgResult::Err(err) => handle_reply_err(deps, msg.id, err),
+    }
+}
+
+#[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::Config {} => to_binary(&query_config(deps)?),
-        QueryMsg::PendingRequests { address } => to_binary(&query_pending_requests(deps, address)?),
         QueryMsg::FailedRequests { address } => to_binary(&query_failed_requests(deps, address)?),
     }
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> Result<Response, ContractError> {
-    match msg.result {
-        SubMsgResult::Ok(res) => handle_reply_ok(deps, msg.id, res),
-        SubMsgResult::Err(err) => handle_reply_err(deps, msg.id, err),
+pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, ContractError> {
+    match msg {
+        SudoMsg::IBCLifecycleComplete(msg) => ibc_lifecycle_complete(deps, env, msg),
     }
 }

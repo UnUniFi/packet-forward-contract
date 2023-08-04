@@ -1,8 +1,10 @@
 pub mod contract;
 pub mod error;
 pub mod execute;
+pub mod ibc_hooks;
 pub mod msgs;
 pub mod proto;
 pub mod query;
 pub mod state;
+pub mod sudo;
 pub mod types;

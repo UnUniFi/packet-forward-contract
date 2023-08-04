@@ -32,8 +32,6 @@ pub enum QueryMsg {
     #[returns(Config)]
     Config {},
     #[returns(Vec<Request>)]
-    PendingRequests { address: String },
-    #[returns(Vec<Request>)]
     FailedRequests { address: String },
 }
 
