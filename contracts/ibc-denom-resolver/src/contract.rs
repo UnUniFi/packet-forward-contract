@@ -1,10 +1,6 @@
-pub mod execute_swap;
-pub mod execute_update_config;
-
-use self::execute_swap::execute_swap;
-use self::execute_update_config::execute_update_config;
 use crate::{
     error::ContractError,
+    execute::{swap::execute_swap, update_config::execute_update_config},
     msg::{ExecuteMsg, InstantiateMsg},
     state::CONFIG,
     types::Config,

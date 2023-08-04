@@ -103,8 +103,8 @@ pub fn execute_swap(
         &config.routes[1..],
         &timeout,
     )?;
-    let memo = match memo {
-        Some(memo) => serde_json_wasm::to_string(&memo).unwrap(),
+    let memo = match &memo {
+        Some(memo) => serde_json_wasm::to_string(memo).unwrap(),
         None => "".to_string(),
     };
 
