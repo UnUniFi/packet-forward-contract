@@ -12,24 +12,6 @@ use packet_forward::proto::traits::MessageExt;
 const TRANSFER_PORT: &str = "transfer";
 
 #[cfg(not(feature = "library"))]
-fn fee_subtracted_amount(
-    amount: Uint128,
-    commission_rate: Decimal,
-    min: Uint128,
-    max: Uint128,
-) -> Result<Uint128, ContractError> {
-    let fee_subtracted_amount = amount.checked_sub(
-        commission_rate
-            .checked_mul(Decimal::new(amount))?
-            .to_uint_floor()
-            .min(min)
-            .max(max),
-    )?;
-
-    Ok(fee_subtracted_amount)
-}
-
-#[cfg(not(feature = "library"))]
 pub fn execute_swap(
     deps: DepsMut,
     env: Env,
@@ -93,4 +75,22 @@ pub fn execute_swap(
     // TODO: add events
 
     Ok(response)
+}
+
+#[cfg(not(feature = "library"))]
+fn fee_subtracted_amount(
+    amount: Uint128,
+    commission_rate: Decimal,
+    min: Uint128,
+    max: Uint128,
+) -> Result<Uint128, ContractError> {
+    let fee_subtracted_amount = amount.checked_sub(
+        commission_rate
+            .checked_mul(Decimal::new(amount))?
+            .to_uint_floor()
+            .min(min)
+            .max(max),
+    )?;
+
+    Ok(fee_subtracted_amount)
 }
