@@ -2,15 +2,32 @@ use crate::error::ContractError;
 use crate::msgs::ForwardMsg;
 use crate::proto::ibc::applications::transfer::v1::{MsgTransfer, MsgTransferResponse};
 use crate::proto::traits::MessageExt;
-use crate::state::{INITIATED_REQUESTS, PENDING_REQUESTS, REQUEST_ID};
+use crate::state::{CONFIG, INITIATED_REQUESTS, PENDING_REQUESTS, REQUEST_ID};
 use crate::types::Request;
+use cosmwasm_std::Uint128;
 use cosmwasm_std::{
-    Binary, Coin, CosmosMsg, DepsMut, Env, MessageInfo, ReplyOn, Response, SubMsg, SubMsgResponse,
+    Binary, Coin, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, ReplyOn, Response, SubMsg,
+    SubMsgResponse,
 };
 use prost::Message;
 
 const TRANSFER_PORT: &str = "transfer";
 
+#[cfg(not(feature = "library"))]
+fn fee_subtracted_amount(
+    amount: Uint128,
+    commission_rate: Decimal,
+) -> Result<Uint128, ContractError> {
+    let fee_subtracted_amount = amount.checked_sub(
+        commission_rate
+            .checked_mul(Decimal::new(amount))?
+            .to_uint_floor(),
+    )?;
+
+    Ok(fee_subtracted_amount)
+}
+
+#[cfg(not(feature = "library"))]
 pub fn execute_forward(
     deps: DepsMut,
     env: Env,
@@ -18,20 +35,34 @@ pub fn execute_forward(
     coin: Coin,
     msg: ForwardMsg,
 ) -> Result<Response, ContractError> {
+    let config = CONFIG.load(deps.storage)?;
+
     let id = REQUEST_ID.load(deps.storage)?;
     REQUEST_ID.save(deps.storage, &(id + 1))?;
 
     let emergency_claimer = deps.api.addr_validate(&msg.emergency_claimer)?;
 
-    INITIATED_REQUESTS.save(deps.storage, id, &(emergency_claimer, coin.clone()))?;
+    let fee_subtracted_amount = fee_subtracted_amount(coin.amount, config.commission_rate)?;
+
+    INITIATED_REQUESTS.save(
+        deps.storage,
+        id,
+        &Request {
+            id,
+            emergency_claimer: emergency_claimer.clone(),
+            coin: coin.clone(),
+        },
+    )?;
+
+    let sdk_coin = crate::proto::cosmos::base::v1beta1::Coin {
+        denom: coin.denom,
+        amount: fee_subtracted_amount.to_string(),
+    };
 
     let msg_any = (MsgTransfer {
         source_port: TRANSFER_PORT.to_string(),
         source_channel: msg.channel.clone(),
-        token: Some(crate::proto::cosmos::base::v1beta1::Coin {
-            denom: coin.denom,
-            amount: coin.amount.to_string(),
-        }),
+        token: Some(sdk_coin),
         sender: env.contract.address.to_string(),
         receiver: msg.receiver.clone(),
         timeout_height: None,
@@ -53,27 +84,22 @@ pub fn execute_forward(
     Ok(response)
 }
 
+#[cfg(not(feature = "library"))]
 pub fn handle_reply_ok(
     deps: DepsMut,
     id: u64,
     res: SubMsgResponse,
 ) -> Result<Response, ContractError> {
     let transfer_response = MsgTransferResponse::decode(&res.data.unwrap().0[..])?;
-    let (addr, coin) = INITIATED_REQUESTS.load(deps.storage, id)?;
+    let request = INITIATED_REQUESTS.load(deps.storage, id)?;
 
-    PENDING_REQUESTS.save(
-        deps.storage,
-        transfer_response.sequence,
-        &Request {
-            emergency_claimer: addr.clone(),
-            coin,
-        },
-    )?;
+    PENDING_REQUESTS.save(deps.storage, transfer_response.sequence, &request)?;
     INITIATED_REQUESTS.remove(deps.storage, id);
 
     Ok(Response::new())
 }
 
+#[cfg(not(feature = "library"))]
 pub fn handle_reply_err(deps: DepsMut, id: u64, _err: String) -> Result<Response, ContractError> {
     INITIATED_REQUESTS.remove(deps.storage, id);
 

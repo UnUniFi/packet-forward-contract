@@ -1,6 +1,7 @@
 use crate::{state::FAILED_REQUESTS, types::Request};
 use cosmwasm_std::{Deps, StdResult};
 
+#[cfg(not(feature = "library"))]
 pub fn query_failed_requests(deps: Deps, addr: String) -> StdResult<Vec<Request>> {
     let addr = deps.api.addr_validate(&addr.as_str())?;
 

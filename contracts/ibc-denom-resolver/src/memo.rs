@@ -6,6 +6,7 @@ use crate::types::{Destination, Route};
 use crate::types::{IbcHooksMetadata, Memo, Msg, PacketForwardMetadata};
 use packet_forward::msgs::ForwardMsg;
 
+#[cfg(not(feature = "library"))]
 pub fn construct_packet_memo(
     receivers: &[String],
     routes: &[Route],
@@ -31,7 +32,7 @@ pub fn construct_packet_memo(
                 }),
                 wasm: None,
             }),
-            Destination::IbcHooks { contract } => Some(Memo {
+            Destination::PacketForwardContract { address: contract } => Some(Memo {
                 forward: None,
                 wasm: Some(IbcHooksMetadata {
                     contract: contract.clone(),
@@ -79,8 +80,8 @@ mod tests {
             Route {
                 src_port: "transfer".to_string(),
                 src_channel: "channel-0".to_string(),
-                destination: Destination::IbcHooks {
-                    contract: "osmo1contractaddress".to_string(),
+                destination: Destination::PacketForwardContract {
+                    address: "osmo1contractaddress".to_string(),
                 },
             },
             // Osmosis
@@ -93,8 +94,8 @@ mod tests {
             Route {
                 src_port: "transfer".to_string(),
                 src_channel: "channel-2".to_string(),
-                destination: Destination::IbcHooks {
-                    contract: "ununifi1contractaddress".to_string(),
+                destination: Destination::PacketForwardContract {
+                    address: "ununifi1contractaddress".to_string(),
                 },
             },
             // UnUniFi

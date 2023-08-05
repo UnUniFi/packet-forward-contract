@@ -5,6 +5,7 @@ use crate::{
 };
 use cosmwasm_std::{DepsMut, Env, Response};
 
+#[cfg(not(feature = "library"))]
 pub fn ibc_lifecycle_complete(
     deps: DepsMut,
     _env: Env,

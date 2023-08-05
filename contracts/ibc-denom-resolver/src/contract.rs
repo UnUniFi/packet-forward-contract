@@ -6,7 +6,6 @@ use crate::{
     state::CONFIG,
     types::Config,
 };
-#[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{to_binary, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw_utils::one_coin;

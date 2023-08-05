@@ -54,17 +54,18 @@ pub struct ForwardMsg {
     pub receiver: String,
     pub port: String,
     pub channel: String,
-    pub timeout: IbcTimeout,
-    pub memo: Option<Memo>,
-}
-
-pub struct Memo {
-    pub forward: Option<PacketForwardMetadata>,
-    pub wasm: Option<IbcHooksMetadata>,
+    pub timeout: Duration,
+    pub memo: String,
 }
 ```
 
 It also contains a `memo` field recursively as well as the Packet Forward Middleware, so that it can be used in the same way to forward packets through chains more than two.
+
+[IBC Denom Resolver](./contracts/ibc-denom-resolver/README.md) recursively designates the route of the packet forwarding, and enables us to resolve ibc denoms.
+
+For example, "ATOM on UnUniFi from Cosmos Hub" can be converted to "ATOM on UnUniFi from Osmosis from Cosmos Hub" and vice versa.
+
+See also README [here](./contracts/packet-forward/README.md).
 
 ## Appreciations
 

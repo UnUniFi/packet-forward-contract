@@ -8,7 +8,6 @@ use crate::query::failed_requests::query_failed_requests;
 use crate::state::CONFIG;
 use crate::sudo::ibc_lifecycle_complete::ibc_lifecycle_complete;
 use crate::types::Config;
-#[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
     to_binary, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
@@ -21,9 +20,12 @@ pub fn instantiate(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
-    _msg: InstantiateMsg,
+    msg: InstantiateMsg,
 ) -> Result<Response, ContractError> {
-    let config = Config { owner: info.sender };
+    let config = Config {
+        owner: info.sender,
+        commission_rate: msg.commission_rate,
+    };
 
     CONFIG.save(deps.storage, &config)?;
 

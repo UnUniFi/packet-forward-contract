@@ -1,14 +1,13 @@
-use std::time::Duration;
-
-use crate::types::{Config, FeeInfo, Route};
+use crate::types::{Config, FeeConfig, Route};
 use cosmwasm_schema::{cw_serde, QueryResponses};
+use std::time::Duration;
 
 #[cw_serde]
 pub struct InstantiateMsg {
     pub denom: String,
     pub timeout: Duration,
     pub routes: Vec<Route>,
-    pub fee: FeeInfo,
+    pub fee: FeeConfig,
 }
 
 #[cw_serde]
@@ -21,7 +20,7 @@ pub enum ExecuteMsg {
 pub struct UpdateConfigMsg {
     pub owner: Option<String>,
     pub timeout: Option<Duration>,
-    pub fee: Option<FeeInfo>,
+    pub fee: Option<FeeConfig>,
 }
 
 #[cw_serde]

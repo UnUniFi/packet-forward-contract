@@ -2,6 +2,7 @@ use crate::{error::ContractError, msgs::UpdateConfigMsg, state::CONFIG, types::C
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 /// Only owner can execute it.
+#[cfg(not(feature = "library"))]
 pub fn execute_update_config(
     deps: DepsMut,
     _env: Env,
@@ -17,6 +18,14 @@ pub fn execute_update_config(
 
     if let Some(owner) = msg.owner {
         config.owner = deps.api.addr_validate(&owner)?;
+    }
+
+    if let Some(timeout) = msg.timeout {
+        config.timeout = timeout;
+    }
+
+    if let Some(fee) = msg.fee {
+        config.fee = fee;
     }
 
     CONFIG.save(deps.storage, &config)?;

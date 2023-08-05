@@ -1,9 +1,12 @@
 use crate::types::{Config, Request};
 use cosmwasm_schema::{cw_serde, QueryResponses};
+use cosmwasm_std::Decimal;
 use std::time::Duration;
 
 #[cw_serde]
-pub struct InstantiateMsg {}
+pub struct InstantiateMsg {
+    pub commission_rate: Decimal,
+}
 
 #[cw_serde]
 pub enum ExecuteMsg {
