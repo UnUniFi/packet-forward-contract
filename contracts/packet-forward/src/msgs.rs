@@ -11,6 +11,7 @@ pub struct InstantiateMsg {
 #[cw_serde]
 pub enum ExecuteMsg {
     Forward(ForwardMsg),
+    ClaimFailedRequest(ClaimFailedRequestMsg),
     UpdateConfig(UpdateConfigMsg),
 }
 
@@ -22,6 +23,11 @@ pub struct ForwardMsg {
     pub channel: String,
     pub timeout: Duration,
     pub memo: String,
+}
+
+#[cw_serde]
+pub struct ClaimFailedRequestMsg {
+    pub request_id: u64,
 }
 
 #[cw_serde]

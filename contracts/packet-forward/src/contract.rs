@@ -1,4 +1,5 @@
 use crate::error::ContractError;
+use crate::execute::claim_failed_request::execute_claim_failed_request;
 use crate::execute::forward::execute_forward;
 use crate::execute::update_config::execute_update_config;
 use crate::ibc_hooks::SudoMsg;
@@ -49,6 +50,7 @@ pub fn execute(
             let coin: Coin = one_coin(&info).map_err(|err| ContractError::Payment(err))?;
             execute_forward(deps, env, info, coin, msg)
         }
+        ExecuteMsg::ClaimFailedRequest(msg) => execute_claim_failed_request(deps, env, info, msg),
         ExecuteMsg::UpdateConfig(msg) => execute_update_config(deps, env, info, msg),
     }
 }

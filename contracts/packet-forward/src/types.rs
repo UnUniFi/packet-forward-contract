@@ -13,9 +13,19 @@ pub struct FeeConfig {
     pub commission_rate: Decimal,
 }
 
+pub type SubMsgId = u64;
+pub type RequestId = u64;
+pub type Sequence = u64;
+
 #[cw_serde]
 pub struct Request {
-    pub id: u64,
+    pub id: RequestId,
     pub emergency_claimer: Addr,
     pub coin: Coin,
+}
+
+#[cw_serde]
+pub enum SubMsgType {
+    InitiateRequest(),
+    ClaimFailedRequest(RequestId, Addr),
 }

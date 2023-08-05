@@ -2,9 +2,14 @@ use crate::error::ContractError;
 use crate::msgs::ForwardMsg;
 use crate::proto::ibc::applications::transfer::v1::MsgTransfer;
 use crate::proto::traits::MessageExt;
-use crate::state::{CONFIG, INITIATED_REQUESTS, REQUEST_ID};
+use crate::state::get_request_id;
+use crate::state::get_sub_msg_id;
+use crate::state::SUB_MSG_TYPE;
+use crate::state::{CONFIG, INITIATED_REQUESTS};
 use crate::types::Request;
+use crate::types::SubMsgType;
 use cosmwasm_schema::schemars::_serde_json::Value;
+use cosmwasm_std::BankMsg;
 use cosmwasm_std::Uint128;
 use cosmwasm_std::{
     Binary, Coin, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, ReplyOn, Response, SubMsg,
@@ -21,12 +26,7 @@ pub fn execute_forward(
     coin: Coin,
     msg: ForwardMsg,
 ) -> Result<Response, ContractError> {
-    use cosmwasm_std::BankMsg;
-
     let config = CONFIG.load(deps.storage)?;
-
-    let id = REQUEST_ID.load(deps.storage)?;
-    REQUEST_ID.save(deps.storage, &(id + 1))?;
 
     let emergency_claimer = deps.api.addr_validate(&msg.emergency_claimer)?;
 
@@ -56,8 +56,11 @@ pub fn execute_forward(
     })
     .to_any()?;
 
+    let sub_msg_id = get_sub_msg_id(deps.storage)?;
+    let request_id = get_request_id(deps.storage)?;
+
     let sub_msg = SubMsg {
-        id,
+        id: sub_msg_id,
         msg: CosmosMsg::Stargate {
             type_url: msg_any.type_url,
             value: Binary(msg_any.value),
@@ -66,11 +69,13 @@ pub fn execute_forward(
         reply_on: ReplyOn::Always,
     };
 
+    SUB_MSG_TYPE.save(deps.storage, sub_msg_id, &SubMsgType::InitiateRequest())?;
+
     INITIATED_REQUESTS.save(
         deps.storage,
-        id,
+        sub_msg_id,
         &Request {
-            id,
+            id: request_id,
             emergency_claimer,
             coin: Coin::new(subtracted.u128(), coin.denom),
         },
