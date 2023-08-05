@@ -1,10 +1,8 @@
-use std::time::Duration;
-
 use crate::error::ContractError;
-use crate::helpers::OptionRefMemo;
 use crate::types::{Destination, Route};
 use crate::types::{IbcHooksMetadata, Memo, Msg, PacketForwardMetadata};
 use packet_forward::msgs::ForwardMsg;
+use std::time::Duration;
 
 #[cfg(not(feature = "library"))]
 pub fn construct_packet_memo(
@@ -12,8 +10,14 @@ pub fn construct_packet_memo(
     routes: &[Route],
     timeout: &Duration,
 ) -> Result<Memo, ContractError> {
+    if receivers.len() != routes.len() {
+        return Err(ContractError::InvalidReceiversLength);
+    }
+
     let memo: &mut Option<Memo> = &mut None;
-    let mut last_receiver = receivers.last().ok_or(ContractError::EmptyRoutes {})?;
+    let mut last_receiver = receivers.last().ok_or(ContractError::EmptyRoutes)?;
+    let mut last_port = &routes.last().ok_or(ContractError::EmptyRoutes)?.src_port;
+    let mut last_channel = &routes.last().ok_or(ContractError::EmptyRoutes)?.src_channel;
 
     for (receiver, route) in receivers.iter().zip(routes).rev() {
         let next_child_memo = match &route.destination {
@@ -21,8 +25,8 @@ pub fn construct_packet_memo(
             Destination::PacketForwardMiddleware => Some(Memo {
                 forward: Some(PacketForwardMetadata {
                     receiver: last_receiver.clone(),
-                    port: route.src_port.clone(),
-                    channel: route.src_channel.clone(),
+                    port: last_port.clone(),
+                    channel: last_channel.clone(),
                     timeout: Some(timeout.as_nanos().to_string()),
                     retries: None,
                     next: match memo {
@@ -32,18 +36,21 @@ pub fn construct_packet_memo(
                 }),
                 wasm: None,
             }),
-            Destination::PacketForwardContract { address: contract } => Some(Memo {
+            Destination::PacketForwardContract(contract) => Some(Memo {
                 forward: None,
                 wasm: Some(IbcHooksMetadata {
                     contract: contract.clone(),
                     msg: Msg {
                         raw_message_fields: serde_json_wasm::to_string(&ForwardMsg {
                             emergency_claimer: receiver.clone(),
-                            port: route.src_port.clone(),
-                            channel: route.src_channel.clone(),
                             receiver: last_receiver.clone(),
+                            port: last_port.clone(),
+                            channel: last_channel.clone(),
                             timeout: timeout.clone(),
-                            memo: memo.as_ref().serialize_json(),
+                            memo: match memo {
+                                Some(memo) => serde_json_wasm::to_string(memo).unwrap(),
+                                None => "".to_string(),
+                            },
                         })
                         .unwrap(),
                     },
@@ -52,6 +59,8 @@ pub fn construct_packet_memo(
         };
         *memo = next_child_memo;
         last_receiver = receiver;
+        last_port = &route.src_port;
+        last_channel = &route.src_channel;
     }
 
     Ok(memo.clone().unwrap())
@@ -80,9 +89,7 @@ mod tests {
             Route {
                 src_port: "transfer".to_string(),
                 src_channel: "channel-0".to_string(),
-                destination: Destination::PacketForwardContract {
-                    address: "osmo1contractaddress".to_string(),
-                },
+                destination: Destination::PacketForwardContract("osmo1contractaddress".to_string()),
             },
             // Osmosis
             Route {
@@ -94,14 +101,14 @@ mod tests {
             Route {
                 src_port: "transfer".to_string(),
                 src_channel: "channel-2".to_string(),
-                destination: Destination::PacketForwardContract {
-                    address: "ununifi1contractaddress".to_string(),
-                },
+                destination: Destination::PacketForwardContract(
+                    "ununifi1contractaddress".to_string(),
+                ),
             },
             // UnUniFi
             Route {
                 src_port: "transfer".to_string(),
-                src_channel: "channel32".to_string(),
+                src_channel: "channel-3".to_string(),
                 destination: Destination::Terminal,
             },
             // Cosmos Hub

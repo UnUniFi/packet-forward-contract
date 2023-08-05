@@ -8,6 +8,7 @@ use std::time::Duration;
 pub struct Config {
     pub owner: Addr,
     pub denom: String,
+    pub first_forward_contract: Addr,
     pub routes: Vec<Route>,
     pub treasury: Addr,
     pub fee: FeeConfig,
@@ -32,7 +33,7 @@ pub struct Route {
 pub enum Destination {
     Terminal,
     PacketForwardMiddleware,
-    PacketForwardContract { address: String },
+    PacketForwardContract(String),
 }
 
 /// https://medium.com/the-interchain-foundation/moving-beyond-simple-token-transfers-d42b2b1dc29b

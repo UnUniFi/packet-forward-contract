@@ -13,6 +13,4 @@ serde-json-wasm = "0.5.1"
 thiserror = "1.0"
 cw-utils = "1.0.1"
 cw-storage-plus = "1.1.0"
-bech32 = "0.9.0"
 packet-forward = { path = "../packet-forward" }
-prost = "0.11"

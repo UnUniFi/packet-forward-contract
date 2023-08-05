@@ -4,7 +4,7 @@ use crate::{
     msgs::{ExecuteMsg, InstantiateMsg, QueryMsg},
     query::config::query_config,
     state::CONFIG,
-    types::Config,
+    types::{Config, Destination},
 };
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{to_binary, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
@@ -17,15 +17,27 @@ pub fn instantiate(
     info: MessageInfo,
     msg: InstantiateMsg,
 ) -> Result<Response, ContractError> {
+    let first_forward_contract = deps.api.addr_validate(&msg.first_forward_contract)?;
     let treasury = deps.api.addr_validate(&msg.treasury)?;
 
     if msg.routes.len() == 0 {
-        return Err(ContractError::EmptyRoutes {});
+        return Err(ContractError::EmptyRoutes);
+    }
+
+    if let Destination::PacketForwardContract(_) = &msg.routes.first().unwrap().destination {
+    } else {
+        return Err(ContractError::InvalidFirstRouteDestination);
+    }
+
+    if let Destination::Terminal = &msg.routes.last().unwrap().destination {
+    } else {
+        return Err(ContractError::InvalidLastRouteDestination);
     }
 
     let config = Config {
         owner: info.sender,
         denom: msg.denom,
+        first_forward_contract,
         routes: msg.routes,
         treasury,
         fee: msg.fee,

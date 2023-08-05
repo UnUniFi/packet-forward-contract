@@ -23,24 +23,6 @@ pub enum ContractError {
     #[error("Proto decode error")]
     DecodeError(#[from] prost::DecodeError),
 
-    #[error("Amount larger than 2**64, not supported by ics20 packets")]
-    AmountOverflow {},
-
-    #[error("Insufficient funds to redeem voucher on channel")]
-    InsufficientFunds {},
-
     #[error("Only contract admin can do this")]
     Unauthorized,
-
-    #[error("No allowed token")]
-    NoAllowedToken {},
-
-    #[error("Execute msg unknown")]
-    UnknownRequest {},
-
-    #[error("Maximum address length")]
-    MaxAddrLength {},
-
-    #[error("Routes are empty")]
-    EmptyRoutes {},
 }
