@@ -13,7 +13,7 @@ pub fn execute_update_config(
 
     // Permission check
     if info.sender != config.owner {
-        return Err(ContractError::Unauthorized {});
+        return Err(ContractError::Unauthorized);
     }
 
     if let Some(owner) = msg.owner {

@@ -90,6 +90,7 @@ pub fn execute_swap(
         type_url: msg_any.type_url,
         value: Binary(msg_any.value),
     });
+    // TODO: add events
 
     Ok(response)
 }

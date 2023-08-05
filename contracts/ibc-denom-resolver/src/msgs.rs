@@ -12,8 +12,14 @@ pub struct InstantiateMsg {
 
 #[cw_serde]
 pub enum ExecuteMsg {
-    UpdateConfig(UpdateConfigMsg),
     Swap(SwapMsg),
+    UpdateConfig(UpdateConfigMsg),
+    ClaimProfit(ClaimProfitMsg),
+}
+
+#[cw_serde]
+pub struct SwapMsg {
+    pub receivers: Vec<String>,
 }
 
 #[cw_serde]
@@ -24,8 +30,8 @@ pub struct UpdateConfigMsg {
 }
 
 #[cw_serde]
-pub struct SwapMsg {
-    pub receivers: Vec<String>,
+pub struct ClaimProfitMsg {
+    pub recipient: Option<String>,
 }
 
 #[cw_serde]

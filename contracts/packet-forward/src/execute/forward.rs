@@ -1,15 +1,13 @@
 use crate::error::ContractError;
 use crate::msgs::ForwardMsg;
-use crate::proto::ibc::applications::transfer::v1::{MsgTransfer, MsgTransferResponse};
+use crate::proto::ibc::applications::transfer::v1::MsgTransfer;
 use crate::proto::traits::MessageExt;
-use crate::state::{CONFIG, INITIATED_REQUESTS, PENDING_REQUESTS, REQUEST_ID};
+use crate::state::{CONFIG, INITIATED_REQUESTS, REQUEST_ID};
 use crate::types::Request;
 use cosmwasm_std::Uint128;
 use cosmwasm_std::{
     Binary, Coin, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, ReplyOn, Response, SubMsg,
-    SubMsgResponse,
 };
-use prost::Message;
 
 const TRANSFER_PORT: &str = "transfer";
 
@@ -80,28 +78,7 @@ pub fn execute_forward(
         gas_limit: None,
         reply_on: ReplyOn::Always,
     });
+    // TODO: add events
 
     Ok(response)
-}
-
-#[cfg(not(feature = "library"))]
-pub fn handle_reply_ok(
-    deps: DepsMut,
-    id: u64,
-    res: SubMsgResponse,
-) -> Result<Response, ContractError> {
-    let transfer_response = MsgTransferResponse::decode(&res.data.unwrap().0[..])?;
-    let request = INITIATED_REQUESTS.load(deps.storage, id)?;
-
-    PENDING_REQUESTS.save(deps.storage, transfer_response.sequence, &request)?;
-    INITIATED_REQUESTS.remove(deps.storage, id);
-
-    Ok(Response::new())
-}
-
-#[cfg(not(feature = "library"))]
-pub fn handle_reply_err(deps: DepsMut, id: u64, _err: String) -> Result<Response, ContractError> {
-    INITIATED_REQUESTS.remove(deps.storage, id);
-
-    Ok(Response::new())
 }

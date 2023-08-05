@@ -16,7 +16,7 @@ pub fn execute_update_config(
 
     // Permission check
     if info.sender != config.owner {
-        return Err(ContractError::Unauthorized {});
+        return Err(ContractError::Unauthorized);
     }
 
     if let Some(owner) = msg.owner {
@@ -24,9 +24,10 @@ pub fn execute_update_config(
     }
 
     CONFIG.save(deps.storage, &config)?;
-    let resp = Response::new()
+    let response = Response::new()
         .add_attribute("action", "update_config")
         .add_attribute("owner", config.owner.to_string());
+    // TODO: add events
 
-    Ok(resp)
+    Ok(response)
 }

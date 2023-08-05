@@ -10,13 +10,9 @@ pub struct InstantiateMsg {
 
 #[cw_serde]
 pub enum ExecuteMsg {
-    UpdateConfig(UpdateConfigMsg),
     Forward(ForwardMsg),
-}
-
-#[cw_serde]
-pub struct UpdateConfigMsg {
-    pub owner: Option<String>,
+    UpdateConfig(UpdateConfigMsg),
+    ClaimProfit(ClaimProfitMsg),
 }
 
 #[cw_serde]
@@ -27,6 +23,16 @@ pub struct ForwardMsg {
     pub channel: String,
     pub timeout: Duration,
     pub memo: String,
+}
+
+#[cw_serde]
+pub struct UpdateConfigMsg {
+    pub owner: Option<String>,
+}
+
+#[cw_serde]
+pub struct ClaimProfitMsg {
+    pub recipient: Option<String>,
 }
 
 #[cw_serde]

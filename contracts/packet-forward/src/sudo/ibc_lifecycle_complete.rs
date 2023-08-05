@@ -41,5 +41,8 @@ pub fn ibc_lifecycle_complete(
         }
     }
 
-    Ok(Response::new())
+    let response = Response::new();
+    // TODO: add events
+
+    Ok(response)
 }
