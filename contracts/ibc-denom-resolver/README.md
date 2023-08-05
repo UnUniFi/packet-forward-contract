@@ -8,6 +8,7 @@
 pub struct Config {
     pub owner: Addr,
     pub denom: String,
+    pub first_forward_contract: Addr,
     pub routes: Vec<Route>,
     pub treasury: Addr,
     pub fee: FeeConfig,
@@ -16,16 +17,16 @@ pub struct Config {
 ```
 
 ```rust
-pub enum Destination {
-    Terminal,
-    PacketForwardMiddleware,
-    PacketForwardContract { address: String },
-}
-
 pub struct Route {
     pub src_port: String,
     pub src_channel: String,
     pub destination: Destination,
+}
+
+pub enum Destination {
+    Terminal,
+    PacketForwardMiddleware,
+    PacketForwardContract(String),
 }
 ```
 
