@@ -5,9 +5,10 @@ use std::time::Duration;
 #[cw_serde]
 pub struct InstantiateMsg {
     pub denom: String,
-    pub timeout: Duration,
     pub routes: Vec<Route>,
+    pub treasury: String,
     pub fee: FeeConfig,
+    pub timeout: Duration,
 }
 
 #[cw_serde]
@@ -24,8 +25,9 @@ pub struct SwapMsg {
 #[cw_serde]
 pub struct UpdateConfigMsg {
     pub owner: Option<String>,
-    pub timeout: Option<Duration>,
+    pub treasury: Option<String>,
     pub fee: Option<FeeConfig>,
+    pub timeout: Option<Duration>,
 }
 
 #[cw_serde]

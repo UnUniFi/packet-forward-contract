@@ -23,6 +23,14 @@ pub fn execute_update_config(
         config.owner = deps.api.addr_validate(&owner)?;
     }
 
+    if let Some(treasury) = msg.treasury {
+        config.treasury = deps.api.addr_validate(&treasury)?;
+    }
+
+    if let Some(fee) = msg.fee {
+        config.fee = fee;
+    }
+
     CONFIG.save(deps.storage, &config)?;
     let response = Response::new()
         .add_attribute("action", "update_config")

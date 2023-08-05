@@ -9,13 +9,13 @@ pub struct Config {
     pub owner: Addr,
     pub denom: String,
     pub routes: Vec<Route>,
+    pub treasury: Addr,
     pub fee: FeeConfig,
     pub timeout: Duration,
 }
 
 #[cw_serde]
 pub struct FeeConfig {
-    pub treasury: Addr,
     pub commission_rate: Decimal,
     pub min: Uint128,
     pub max: Uint128,

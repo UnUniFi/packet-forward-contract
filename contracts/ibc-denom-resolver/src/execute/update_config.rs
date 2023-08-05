@@ -20,12 +20,16 @@ pub fn execute_update_config(
         config.owner = deps.api.addr_validate(&owner)?;
     }
 
-    if let Some(timeout) = msg.timeout {
-        config.timeout = timeout;
+    if let Some(treasury) = msg.treasury {
+        config.treasury = deps.api.addr_validate(&treasury)?;
     }
 
     if let Some(fee) = msg.fee {
         config.fee = fee;
+    }
+
+    if let Some(timeout) = msg.timeout {
+        config.timeout = timeout;
     }
 
     CONFIG.save(deps.storage, &config)?;

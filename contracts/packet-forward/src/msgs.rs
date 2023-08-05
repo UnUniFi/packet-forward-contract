@@ -4,6 +4,7 @@ use std::time::Duration;
 
 #[cw_serde]
 pub struct InstantiateMsg {
+    pub treasury: String,
     pub fee: FeeConfig,
 }
 
@@ -26,6 +27,8 @@ pub struct ForwardMsg {
 #[cw_serde]
 pub struct UpdateConfigMsg {
     pub owner: Option<String>,
+    pub treasury: Option<String>,
+    pub fee: Option<FeeConfig>,
 }
 
 #[cw_serde]

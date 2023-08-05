@@ -4,12 +4,12 @@ use cosmwasm_std::{Addr, Coin, Decimal};
 #[cw_serde]
 pub struct Config {
     pub owner: Addr,
+    pub treasury: Addr,
     pub fee: FeeConfig,
 }
 
 #[cw_serde]
 pub struct FeeConfig {
-    pub treasury: Addr,
     pub commission_rate: Decimal,
 }
 

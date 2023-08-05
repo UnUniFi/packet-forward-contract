@@ -17,6 +17,8 @@ pub fn instantiate(
     info: MessageInfo,
     msg: InstantiateMsg,
 ) -> Result<Response, ContractError> {
+    let treasury = deps.api.addr_validate(&msg.treasury)?;
+
     if msg.routes.len() == 0 {
         return Err(ContractError::EmptyRoutes {});
     }
@@ -24,9 +26,10 @@ pub fn instantiate(
     let config = Config {
         owner: info.sender,
         denom: msg.denom,
-        timeout: msg.timeout,
         routes: msg.routes,
+        treasury,
         fee: msg.fee,
+        timeout: msg.timeout,
     };
 
     CONFIG.save(deps.storage, &config)?;

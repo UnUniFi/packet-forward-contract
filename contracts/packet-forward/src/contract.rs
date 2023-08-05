@@ -24,8 +24,11 @@ pub fn instantiate(
     info: MessageInfo,
     msg: InstantiateMsg,
 ) -> Result<Response, ContractError> {
+    let treasury = deps.api.addr_validate(&msg.treasury)?;
+
     let config = Config {
         owner: info.sender,
+        treasury,
         fee: msg.fee,
     };
 

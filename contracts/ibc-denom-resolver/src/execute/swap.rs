@@ -33,7 +33,7 @@ pub fn execute_swap(
     )?;
 
     let treasury_msg = CosmosMsg::Bank(BankMsg::Send {
-        to_address: config.fee.treasury.to_string(),
+        to_address: config.treasury.to_string(),
         amount: vec![Coin::new(fee.u128(), coin.denom.clone())],
     });
 
