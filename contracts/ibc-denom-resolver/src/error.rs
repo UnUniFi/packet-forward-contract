@@ -19,9 +19,6 @@ pub enum ContractError {
     #[error("Routes are empty")]
     EmptyRoutes,
 
-    #[error("The destination of the first route must be Destination::PacketForwardContract")]
-    InvalidFirstRouteDestination,
-
     #[error("The destination of the last route must be Destination::Terminal")]
     InvalidLastRouteDestination,
 

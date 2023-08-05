@@ -10,10 +10,6 @@ pub fn construct_packet_memo(
     routes: &[Route],
     timeout: &Duration,
 ) -> Result<Memo, ContractError> {
-    if receivers.len() != routes.len() {
-        return Err(ContractError::InvalidReceiversLength);
-    }
-
     let memo: &mut Option<Memo> = &mut None;
     let mut last_receiver = receivers.last().ok_or(ContractError::EmptyRoutes)?;
     let mut last_port = &routes.last().ok_or(ContractError::EmptyRoutes)?.src_port;

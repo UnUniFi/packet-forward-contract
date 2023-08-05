@@ -24,11 +24,6 @@ pub fn instantiate(
         return Err(ContractError::EmptyRoutes);
     }
 
-    if let Destination::PacketForwardContract(_) = &msg.routes.first().unwrap().destination {
-    } else {
-        return Err(ContractError::InvalidFirstRouteDestination);
-    }
-
     if let Destination::Terminal = &msg.routes.last().unwrap().destination {
     } else {
         return Err(ContractError::InvalidLastRouteDestination);

@@ -11,13 +11,15 @@ use packet_forward::msgs::ForwardMsg;
 pub fn execute_swap(
     deps: DepsMut,
     _env: Env,
-    _info: MessageInfo,
+    info: MessageInfo,
     coin: Coin,
     msg: SwapMsg,
 ) -> Result<Response, ContractError> {
     let config = CONFIG.load(deps.storage)?;
 
-    let memo = construct_packet_memo(&msg.receivers, &config.routes, &config.timeout)?;
+    if msg.receivers.len() != config.routes.len() {
+        return Err(ContractError::InvalidReceiversLength);
+    }
 
     let (fee, subtracted) = fee_and_subtracted(
         coin.amount,
@@ -31,20 +33,20 @@ pub fn execute_swap(
         amount: vec![Coin::new(fee.u128(), coin.denom.clone())],
     });
 
-    let forward_msg = if let Some(wasm) = memo.wasm {
-        let forward_msg =
-            serde_json_wasm::from_str::<ForwardMsg>(wasm.msg.raw_message_fields.as_str()).unwrap();
+    let memo = construct_packet_memo(&msg.receivers, &config.routes, &config.timeout)?;
 
-        let msg = CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: wasm.contract,
-            msg: to_binary(&forward_msg)?,
-            funds: vec![Coin::new(subtracted.u128(), coin.denom.clone())],
-        });
-
-        Ok(msg)
-    } else {
-        Err(ContractError::InvalidFirstRouteDestination)
-    }?;
+    let forward_msg = CosmosMsg::Wasm(WasmMsg::Execute {
+        contract_addr: config.first_forward_contract.to_string(),
+        msg: to_binary(&ForwardMsg {
+            emergency_claimer: info.sender.to_string(),
+            receiver: msg.receivers[0].clone(),
+            port: config.routes[0].src_port.clone(),
+            channel: config.routes[0].src_channel.clone(),
+            timeout: config.timeout.clone(),
+            memo: serde_json_wasm::to_string(&memo).unwrap(),
+        })?,
+        funds: vec![Coin::new(subtracted.u128(), coin.denom.clone())],
+    });
 
     let response = Response::new()
         .add_message(treasury_msg)
