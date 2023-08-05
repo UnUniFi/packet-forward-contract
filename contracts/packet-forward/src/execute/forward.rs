@@ -21,6 +21,8 @@ pub fn execute_forward(
     coin: Coin,
     msg: ForwardMsg,
 ) -> Result<Response, ContractError> {
+    use cosmwasm_std::BankMsg;
+
     let config = CONFIG.load(deps.storage)?;
 
     let id = REQUEST_ID.load(deps.storage)?;
@@ -28,21 +30,16 @@ pub fn execute_forward(
 
     let emergency_claimer = deps.api.addr_validate(&msg.emergency_claimer)?;
 
-    let fee_subtracted_amount = fee_subtracted_amount(coin.amount, config.commission_rate)?;
+    let (fee, subtracted) = fee_and_subtracted(coin.amount, config.fee.commission_rate)?;
 
-    INITIATED_REQUESTS.save(
-        deps.storage,
-        id,
-        &Request {
-            id,
-            emergency_claimer: emergency_claimer.clone(),
-            coin: coin.clone(),
-        },
-    )?;
+    let treasury_msg = CosmosMsg::Bank(BankMsg::Send {
+        to_address: config.fee.treasury.to_string(),
+        amount: vec![Coin::new(fee.u128(), coin.denom.clone())],
+    });
 
     let sdk_coin = crate::proto::cosmos::base::v1beta1::Coin {
-        denom: coin.denom,
-        amount: fee_subtracted_amount.to_string(),
+        denom: coin.denom.clone(),
+        amount: subtracted.to_string(),
     };
 
     let contract = env.contract.address.to_string();
@@ -59,7 +56,7 @@ pub fn execute_forward(
     })
     .to_any()?;
 
-    let response = Response::new().add_submessage(SubMsg {
+    let sub_msg = SubMsg {
         id,
         msg: CosmosMsg::Stargate {
             type_url: msg_any.type_url,
@@ -67,24 +64,37 @@ pub fn execute_forward(
         },
         gas_limit: None,
         reply_on: ReplyOn::Always,
-    });
+    };
+
+    INITIATED_REQUESTS.save(
+        deps.storage,
+        id,
+        &Request {
+            id,
+            emergency_claimer,
+            coin: Coin::new(subtracted.u128(), coin.denom),
+        },
+    )?;
+
+    let response = Response::new()
+        .add_message(treasury_msg)
+        .add_submessage(sub_msg);
     // TODO: add events
 
     Ok(response)
 }
 
 #[cfg(not(feature = "library"))]
-fn fee_subtracted_amount(
+fn fee_and_subtracted(
     amount: Uint128,
     commission_rate: Decimal,
-) -> Result<Uint128, ContractError> {
-    let fee_subtracted_amount = amount.checked_sub(
-        commission_rate
-            .checked_mul(Decimal::new(amount))?
-            .to_uint_floor(),
-    )?;
+) -> Result<(Uint128, Uint128), ContractError> {
+    let fee = commission_rate
+        .checked_mul(Decimal::new(amount))?
+        .to_uint_floor();
+    let subtracted = amount.checked_sub(fee)?;
 
-    Ok(fee_subtracted_amount)
+    Ok((fee, subtracted))
 }
 
 #[cfg(not(feature = "library"))]

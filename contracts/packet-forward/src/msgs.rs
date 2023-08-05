@@ -1,18 +1,16 @@
-use crate::types::{Config, Request};
+use crate::types::{Config, FeeConfig, Request};
 use cosmwasm_schema::{cw_serde, QueryResponses};
-use cosmwasm_std::Decimal;
 use std::time::Duration;
 
 #[cw_serde]
 pub struct InstantiateMsg {
-    pub commission_rate: Decimal,
+    pub fee: FeeConfig,
 }
 
 #[cw_serde]
 pub enum ExecuteMsg {
     Forward(ForwardMsg),
     UpdateConfig(UpdateConfigMsg),
-    ClaimProfit(ClaimProfitMsg),
 }
 
 #[cw_serde]
@@ -28,11 +26,6 @@ pub struct ForwardMsg {
 #[cw_serde]
 pub struct UpdateConfigMsg {
     pub owner: Option<String>,
-}
-
-#[cw_serde]
-pub struct ClaimProfitMsg {
-    pub recipient: Option<String>,
 }
 
 #[cw_serde]

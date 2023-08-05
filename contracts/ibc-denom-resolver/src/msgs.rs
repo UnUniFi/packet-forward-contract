@@ -14,7 +14,6 @@ pub struct InstantiateMsg {
 pub enum ExecuteMsg {
     Swap(SwapMsg),
     UpdateConfig(UpdateConfigMsg),
-    ClaimProfit(ClaimProfitMsg),
 }
 
 #[cw_serde]
@@ -27,11 +26,6 @@ pub struct UpdateConfigMsg {
     pub owner: Option<String>,
     pub timeout: Option<Duration>,
     pub fee: Option<FeeConfig>,
-}
-
-#[cw_serde]
-pub struct ClaimProfitMsg {
-    pub recipient: Option<String>,
 }
 
 #[cw_serde]

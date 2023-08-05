@@ -1,9 +1,6 @@
 use crate::{
     error::ContractError,
-    execute::{
-        claim_profit::execute_claim_profit, swap::execute_swap,
-        update_config::execute_update_config,
-    },
+    execute::{swap::execute_swap, update_config::execute_update_config},
     msgs::{ExecuteMsg, InstantiateMsg, QueryMsg},
     query::config::query_config,
     state::CONFIG,
@@ -50,7 +47,6 @@ pub fn execute(
             execute_swap(deps, env, info, coin, msg)
         }
         ExecuteMsg::UpdateConfig(msg) => execute_update_config(deps, env, info, msg),
-        ExecuteMsg::ClaimProfit(msg) => execute_claim_profit(deps, env, info, msg),
     }
 }
 

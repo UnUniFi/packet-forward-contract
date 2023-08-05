@@ -19,23 +19,30 @@ pub fn execute_swap(
     coin: Coin,
     msg: SwapMsg,
 ) -> Result<Response, ContractError> {
+    use cosmwasm_std::BankMsg;
+
     let config = CONFIG.load(deps.storage)?;
 
     let memo = construct_packet_memo(&msg.receivers, &config.routes, &config.timeout)?;
 
-    let fee_subtracted_amount = fee_subtracted_amount(
+    let (fee, subtracted) = fee_and_subtracted(
         coin.amount,
         config.fee.commission_rate,
         config.fee.min,
         config.fee.max,
     )?;
 
+    let treasury_msg = CosmosMsg::Bank(BankMsg::Send {
+        to_address: config.fee.treasury.to_string(),
+        amount: vec![Coin::new(fee.u128(), coin.denom.clone())],
+    });
+
     let sdk_coin = packet_forward::proto::cosmos::base::v1beta1::Coin {
         denom: coin.denom,
-        amount: fee_subtracted_amount.to_string(),
+        amount: subtracted.to_string(),
     };
 
-    let msg = if let Some(forward) = memo.forward {
+    let msg_transfer = if let Some(forward) = memo.forward {
         Ok(MsgTransfer {
             source_port: TRANSFER_PORT.to_string(),
             source_channel: forward.channel.clone(),
@@ -66,31 +73,31 @@ pub fn execute_swap(
             Err(ContractError::EmptyRoutes {})
         }
     }?;
-    let msg_any = msg.to_any()?;
-
-    let response = Response::new().add_message(CosmosMsg::Stargate {
+    let msg_any = msg_transfer.to_any()?;
+    let msg = CosmosMsg::Stargate {
         type_url: msg_any.type_url,
         value: Binary(msg_any.value),
-    });
+    };
+
+    let response = Response::new().add_message(treasury_msg).add_message(msg);
     // TODO: add events
 
     Ok(response)
 }
 
 #[cfg(not(feature = "library"))]
-fn fee_subtracted_amount(
+fn fee_and_subtracted(
     amount: Uint128,
     commission_rate: Decimal,
     min: Uint128,
     max: Uint128,
-) -> Result<Uint128, ContractError> {
-    let fee_subtracted_amount = amount.checked_sub(
-        commission_rate
-            .checked_mul(Decimal::new(amount))?
-            .to_uint_floor()
-            .min(min)
-            .max(max),
-    )?;
+) -> Result<(Uint128, Uint128), ContractError> {
+    let fee = commission_rate
+        .checked_mul(Decimal::new(amount))?
+        .to_uint_floor()
+        .min(min)
+        .max(max);
+    let subtracted = amount.checked_sub(fee)?;
 
-    Ok(fee_subtracted_amount)
+    Ok((fee, subtracted))
 }

@@ -15,6 +15,7 @@ pub struct Config {
 
 #[cw_serde]
 pub struct FeeConfig {
+    pub treasury: Addr,
     pub commission_rate: Decimal,
     pub min: Uint128,
     pub max: Uint128,

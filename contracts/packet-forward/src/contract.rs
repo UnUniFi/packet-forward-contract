@@ -1,5 +1,4 @@
 use crate::error::ContractError;
-use crate::execute::claim_profit::execute_claim_profit;
 use crate::execute::forward::execute_forward;
 use crate::execute::update_config::execute_update_config;
 use crate::ibc_hooks::SudoMsg;
@@ -27,7 +26,7 @@ pub fn instantiate(
 ) -> Result<Response, ContractError> {
     let config = Config {
         owner: info.sender,
-        commission_rate: msg.commission_rate,
+        fee: msg.fee,
     };
 
     CONFIG.save(deps.storage, &config)?;
@@ -48,7 +47,6 @@ pub fn execute(
             execute_forward(deps, env, info, coin, msg)
         }
         ExecuteMsg::UpdateConfig(msg) => execute_update_config(deps, env, info, msg),
-        ExecuteMsg::ClaimProfit(msg) => execute_claim_profit(deps, env, info, msg),
     }
 }
 
