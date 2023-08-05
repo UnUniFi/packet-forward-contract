@@ -15,6 +15,7 @@ pub fn execute_swap(
     coin: Coin,
     msg: SwapMsg,
 ) -> Result<Response, ContractError> {
+    let mut response = Response::new();
     let config = CONFIG.load(deps.storage)?;
 
     if msg.receivers.len() != config.routes.len() {
@@ -48,9 +49,7 @@ pub fn execute_swap(
         funds: vec![Coin::new(subtracted.u128(), coin.denom.clone())],
     });
 
-    let response = Response::new()
-        .add_message(treasury_msg)
-        .add_message(forward_msg);
+    response = response.add_message(treasury_msg).add_message(forward_msg);
     // TODO: add events
 
     Ok(response)

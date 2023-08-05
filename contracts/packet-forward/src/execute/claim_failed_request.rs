@@ -12,6 +12,8 @@ pub fn execute_claim_failed_request(
     info: MessageInfo,
     msg: ClaimFailedRequestMsg,
 ) -> Result<Response, ContractError> {
+    let mut response = Response::new();
+
     let request = FAILED_REQUESTS.load(deps.storage, (&info.sender, msg.request_id))?;
 
     FAILED_REQUESTS.remove(deps.storage, (&request.emergency_claimer, request.id));
@@ -20,7 +22,9 @@ pub fn execute_claim_failed_request(
         amount: vec![request.coin],
     });
 
-    let response = Response::new().add_message(msg);
+    response = response.add_message(msg);
+
+    response = response.add_attribute("action", "claim_failed_request");
     // TODO: add events
 
     Ok(response)

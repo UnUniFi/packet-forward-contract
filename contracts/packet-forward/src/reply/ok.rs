@@ -13,9 +13,11 @@ pub fn reply_ok(
     id: SubMsgId,
     res: SubMsgResponse,
 ) -> Result<Response, ContractError> {
+    let mut response = Response::new();
+
     let sub_msg_type = SUB_MSG_TYPE.load(deps.storage, id)?;
 
-    let response = match sub_msg_type {
+    response = match sub_msg_type {
         SubMsgType::InitiateRequest => {
             let transfer_response = MsgTransferResponse::decode(&res.data.unwrap().0[..])?;
             let request = INITIATED_REQUESTS.load(deps.storage, id)?;
@@ -24,7 +26,7 @@ pub fn reply_ok(
             INITIATED_REQUESTS.remove(deps.storage, id);
 
             // TODO: add events
-            Response::new()
+            response.add_attribute("action", "initiate_request")
         }
     };
 

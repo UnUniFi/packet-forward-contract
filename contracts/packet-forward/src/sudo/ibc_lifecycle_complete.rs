@@ -11,7 +11,8 @@ pub fn ibc_lifecycle_complete(
     _env: Env,
     msg: IBCLifecycleComplete,
 ) -> Result<Response, ContractError> {
-    let response = match msg {
+    let mut response = Response::new();
+    response = match msg {
         IBCLifecycleComplete::IBCAck {
             channel: _,
             sequence,
@@ -21,7 +22,7 @@ pub fn ibc_lifecycle_complete(
             PENDING_REQUESTS.remove(deps.storage, sequence);
 
             // TODO: add events
-            Response::new()
+            response
         }
         IBCLifecycleComplete::IBCAck {
             channel: _,
@@ -43,7 +44,7 @@ pub fn ibc_lifecycle_complete(
             PENDING_REQUESTS.remove(deps.storage, sequence);
 
             // TODO: add events
-            Response::new()
+            response
         }
     };
 

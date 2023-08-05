@@ -12,6 +12,8 @@ pub fn execute_update_config(
     info: MessageInfo,
     msg: UpdateConfigMsg,
 ) -> Result<Response, ContractError> {
+    let mut response = Response::new();
+
     let mut config: Config = CONFIG.load(deps.storage)?;
 
     // Permission check
@@ -32,7 +34,7 @@ pub fn execute_update_config(
     }
 
     CONFIG.save(deps.storage, &config)?;
-    let response = Response::new()
+    response = response
         .add_attribute("action", "update_config")
         .add_attribute("owner", config.owner.to_string());
     // TODO: add events

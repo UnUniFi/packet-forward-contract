@@ -26,6 +26,8 @@ pub fn execute_forward(
     coin: Coin,
     msg: ForwardMsg,
 ) -> Result<Response, ContractError> {
+    let mut response = Response::new();
+
     let config = CONFIG.load(deps.storage)?;
 
     let emergency_claimer = deps.api.addr_validate(&msg.emergency_claimer)?;
@@ -36,6 +38,8 @@ pub fn execute_forward(
         to_address: config.treasury.to_string(),
         amount: vec![Coin::new(fee.u128(), coin.denom.clone())],
     });
+
+    response = response.add_message(treasury_msg);
 
     let sdk_coin = crate::proto::cosmos::base::v1beta1::Coin {
         denom: coin.denom.clone(),
@@ -69,6 +73,8 @@ pub fn execute_forward(
         reply_on: ReplyOn::Always,
     };
 
+    response = response.add_submessage(sub_msg);
+
     SUB_MSG_TYPE.save(deps.storage, sub_msg_id, &SubMsgType::InitiateRequest)?;
 
     INITIATED_REQUESTS.save(
@@ -81,9 +87,7 @@ pub fn execute_forward(
         },
     )?;
 
-    let response = Response::new()
-        .add_message(treasury_msg)
-        .add_submessage(sub_msg);
+    response = response.add_attribute("action", "forward");
     // TODO: add events
 
     Ok(response)
