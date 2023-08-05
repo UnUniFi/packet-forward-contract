@@ -1,6 +1,5 @@
 use crate::error::ContractError;
 use crate::proto::ibc::applications::transfer::v1::MsgTransferResponse;
-use crate::state::FAILED_REQUESTS;
 use crate::state::SUB_MSG_TYPE;
 use crate::state::{INITIATED_REQUESTS, PENDING_REQUESTS};
 use crate::types::SubMsgId;
@@ -17,18 +16,12 @@ pub fn reply_ok(
     let sub_msg_type = SUB_MSG_TYPE.load(deps.storage, id)?;
 
     let response = match sub_msg_type {
-        SubMsgType::InitiateRequest() => {
+        SubMsgType::InitiateRequest => {
             let transfer_response = MsgTransferResponse::decode(&res.data.unwrap().0[..])?;
             let request = INITIATED_REQUESTS.load(deps.storage, id)?;
 
             PENDING_REQUESTS.save(deps.storage, transfer_response.sequence, &request)?;
             INITIATED_REQUESTS.remove(deps.storage, id);
-
-            // TODO: add events
-            Response::new()
-        }
-        SubMsgType::ClaimFailedRequest(request_id, addr) => {
-            FAILED_REQUESTS.remove(deps.storage, (&addr, request_id));
 
             // TODO: add events
             Response::new()

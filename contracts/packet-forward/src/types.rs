@@ -26,6 +26,5 @@ pub struct Request {
 
 #[cw_serde]
 pub enum SubMsgType {
-    InitiateRequest(),
-    ClaimFailedRequest(RequestId, Addr),
+    InitiateRequest,
 }

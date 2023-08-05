@@ -10,13 +10,12 @@ pub fn reply_err(deps: DepsMut, id: SubMsgId, _err: String) -> Result<Response, 
     let sub_msg_type = SUB_MSG_TYPE.load(deps.storage, id)?;
 
     let response = match sub_msg_type {
-        SubMsgType::InitiateRequest() => {
+        SubMsgType::InitiateRequest => {
             INITIATED_REQUESTS.remove(deps.storage, id);
 
             // TODO: add events
             Response::new()
         }
-        _ => Response::new(),
     };
 
     SUB_MSG_TYPE.remove(deps.storage, id);

@@ -69,7 +69,7 @@ pub fn execute_forward(
         reply_on: ReplyOn::Always,
     };
 
-    SUB_MSG_TYPE.save(deps.storage, sub_msg_id, &SubMsgType::InitiateRequest())?;
+    SUB_MSG_TYPE.save(deps.storage, sub_msg_id, &SubMsgType::InitiateRequest)?;
 
     INITIATED_REQUESTS.save(
         deps.storage,
