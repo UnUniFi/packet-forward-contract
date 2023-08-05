@@ -33,6 +33,7 @@ pub fn execute_swap(
         to_address: config.treasury.to_string(),
         amount: vec![Coin::new(fee.u128(), coin.denom.clone())],
     });
+    response = response.add_message(treasury_msg);
 
     let memo = construct_packet_memo(&msg.receivers, &config.routes, &config.timeout)?;
 
@@ -48,9 +49,10 @@ pub fn execute_swap(
         })?,
         funds: vec![Coin::new(subtracted.u128(), coin.denom.clone())],
     });
+    response = response.add_message(forward_msg);
 
-    response = response.add_message(treasury_msg).add_message(forward_msg);
     // TODO: add events
+    response = response.add_attribute("action", "swap");
 
     Ok(response)
 }
