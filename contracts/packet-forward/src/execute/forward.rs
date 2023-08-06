@@ -133,7 +133,7 @@ mod tests {
         memo_object.insert("forward".to_string(), Value::String("foo".to_string()));
         memo_object.insert("wasm".to_string(), Value::String("bar".to_string()));
 
-        let memo = cosmwasm_schema::schemars::_serde_json::to_string(&memo_object).unwrap();
+        let memo = serde_json_wasm::to_string(&memo_object).unwrap();
 
         let inserted_memo = insert_ibc_callback(&memo, "hoge");
 
