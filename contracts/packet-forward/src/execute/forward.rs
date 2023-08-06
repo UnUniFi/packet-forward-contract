@@ -8,13 +8,13 @@ use crate::state::SUB_MSG_TYPE;
 use crate::state::{CONFIG, INITIATED_REQUESTS};
 use crate::types::Request;
 use crate::types::SubMsgType;
-use cosmwasm_schema::schemars::_serde_json::Value;
 use cosmwasm_std::BankMsg;
 use cosmwasm_std::Uint128;
 use cosmwasm_std::{
     Binary, Coin, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, ReplyOn, Response, SubMsg,
 };
-use std::collections::HashMap;
+use serde_cw_value::Value;
+use std::collections::BTreeMap;
 
 const TRANSFER_PORT: &str = "transfer";
 
@@ -108,27 +108,30 @@ fn fee_and_subtracted(
 
 #[cfg(not(feature = "library"))]
 fn insert_ibc_callback(memo: &str, contract: &str) -> String {
-    let mut memo_object: HashMap<String, Value> =
-        cosmwasm_schema::schemars::_serde_json::from_str(memo).unwrap_or_default();
+    let mut memo_object: BTreeMap<String, Value> =
+        serde_json_wasm::from_str(memo).unwrap_or_default();
 
-    memo_object.insert("ibc_callback".to_string(), contract.into());
-    let memo = cosmwasm_schema::schemars::_serde_json::to_string(&memo_object).unwrap();
+    memo_object.insert(
+        "ibc_callback".to_string(),
+        Value::String(contract.to_string()),
+    );
+    let memo = serde_json_wasm::to_string(&memo_object).unwrap();
 
     memo
 }
 
 #[cfg(test)]
 mod tests {
-    use cosmwasm_schema::schemars::_serde_json::Value;
-    use std::collections::HashMap;
+    use serde_cw_value::Value;
+    use std::collections::BTreeMap;
 
     use crate::execute::forward::insert_ibc_callback;
 
     #[test]
     fn it_works() {
-        let mut memo_object: HashMap<String, Value> = HashMap::new();
-        memo_object.insert("forward".to_string(), "foo".into());
-        memo_object.insert("wasm".to_string(), "bar".into());
+        let mut memo_object: BTreeMap<String, Value> = BTreeMap::new();
+        memo_object.insert("forward".to_string(), Value::String("foo".to_string()));
+        memo_object.insert("wasm".to_string(), Value::String("bar".to_string()));
 
         let memo = cosmwasm_schema::schemars::_serde_json::to_string(&memo_object).unwrap();
 
