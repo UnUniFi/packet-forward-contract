@@ -21,10 +21,3 @@ pub enum IBCLifecycleComplete {
         sequence: u64,
     },
 }
-
-/// Message type for `sudo` entry_point
-#[cw_serde]
-pub enum SudoMsg {
-    #[serde(rename = "ibc_lifecycle_complete")]
-    IBCLifecycleComplete(IBCLifecycleComplete),
-}

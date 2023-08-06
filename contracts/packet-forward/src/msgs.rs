@@ -1,4 +1,7 @@
-use crate::types::{Config, FeeConfig, Request};
+use crate::{
+    ibc_hooks::IBCLifecycleComplete,
+    types::{Config, FeeConfig, Request},
+};
 use cosmwasm_schema::{cw_serde, QueryResponses};
 use std::time::Duration;
 
@@ -44,6 +47,12 @@ pub enum QueryMsg {
     Config {},
     #[returns(Vec<Request>)]
     FailedRequests { address: String },
+}
+
+#[cw_serde]
+pub enum SudoMsg {
+    #[serde(rename = "ibc_lifecycle_complete")]
+    IBCLifecycleComplete(IBCLifecycleComplete),
 }
 
 #[cw_serde]
