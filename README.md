@@ -67,6 +67,11 @@ For example, "ATOM on UnUniFi from Cosmos Hub" can be converted to "ATOM on UnUn
 
 See also README [here](./contracts/packet-forward/README.md).
 
+## License
+
+- [IBC Denom Resolver](./contracts/ibc-denom-resolver/LICENSE.md)
+- [Packet Forward](./contracts/packet-forward/LICENSE)
+
 ## Appreciations
 
 - <https://github.com/CosmWasm/cw-template>
