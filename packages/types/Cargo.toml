@@ -1,0 +1,21 @@
+[package]
+name          = "packet-forward-types"
+description   = "Messages and types for Packet Forward smart contracts"
+version       = { workspace = true }
+edition       = { workspace = true }
+
+[lib]
+doctest = false
+
+[features]
+# for quicker tests, cargo test --lib
+# for more explicit tests, cargo test --features=backtraces
+backtraces = ["cosmwasm-std/backtraces"]
+
+[dependencies]
+cosmwasm-std = { workspace = true }
+cosmwasm-schema = {workspace = true}
+thiserror = {workspace = true}
+cw-storage-plus = {workspace = true}
+cw-utils = {workspace = true}
+serde-json-wasm = {workspace = true}

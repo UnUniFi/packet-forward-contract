@@ -1,7 +1,5 @@
 use crate::error::ContractError;
-use crate::msgs::UpdateConfigMsg;
-use crate::state::CONFIG;
-use crate::types::Config;
+use packet_forward_types::packet_forward::{UpdateConfigMsg, CONFIG, Config};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 /// Only owner can execute it.

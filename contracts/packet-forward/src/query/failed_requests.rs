@@ -1,4 +1,4 @@
-use crate::{state::FAILED_REQUESTS, types::Request};
+use packet_forward_types::packet_forward::{FAILED_REQUESTS, Request};
 use cosmwasm_std::{Deps, StdResult};
 
 #[cfg(not(feature = "library"))]

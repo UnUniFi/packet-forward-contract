@@ -1,9 +1,8 @@
 use crate::error::ContractError;
 use crate::proto::ibc::applications::transfer::v1::MsgTransferResponse;
-use crate::state::SUB_MSG_TYPE;
-use crate::state::{INITIATED_REQUESTS, PENDING_REQUESTS};
-use crate::types::SubMsgId;
-use crate::types::SubMsgType;
+use packet_forward_types::packet_forward::{
+    SUB_MSG_TYPE, SubMsgId, SubMsgType, INITIATED_REQUESTS, PENDING_REQUESTS
+};
 use cosmwasm_std::{DepsMut, Response, SubMsgResponse};
 use prost::Message;
 

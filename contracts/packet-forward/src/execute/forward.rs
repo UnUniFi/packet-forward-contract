@@ -1,13 +1,9 @@
 use crate::error::ContractError;
-use crate::msgs::ForwardMsg;
+use packet_forward_types::packet_forward::{
+    ForwardMsg, CONFIG, INITIATED_REQUESTS, Request, SubMsgType, SUB_MSG_TYPE
+};
 use crate::proto::ibc::applications::transfer::v1::MsgTransfer;
 use crate::proto::traits::MessageExt;
-use crate::state::get_request_id;
-use crate::state::get_sub_msg_id;
-use crate::state::SUB_MSG_TYPE;
-use crate::state::{CONFIG, INITIATED_REQUESTS};
-use crate::types::Request;
-use crate::types::SubMsgType;
 use cosmwasm_std::BankMsg;
 use cosmwasm_std::Uint128;
 use cosmwasm_std::{
@@ -26,6 +22,8 @@ pub fn execute_forward(
     coin: Coin,
     msg: ForwardMsg,
 ) -> Result<Response, ContractError> {
+    use crate::query::ids::{get_request_id, get_sub_msg_id};
+
     let mut response = Response::new();
 
     let config = CONFIG.load(deps.storage)?;

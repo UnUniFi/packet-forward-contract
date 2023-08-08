@@ -2,14 +2,12 @@ use crate::error::ContractError;
 use crate::execute::claim_failed_request::execute_claim_failed_request;
 use crate::execute::forward::execute_forward;
 use crate::execute::update_config::execute_update_config;
-use crate::msgs::{ExecuteMsg, InstantiateMsg, QueryMsg, SudoMsg};
+use packet_forward_types::packet_forward::{ExecuteMsg, InstantiateMsg, QueryMsg, SudoMsg, Config, CONFIG};
 use crate::query::config::query_config;
 use crate::query::failed_requests::query_failed_requests;
 use crate::reply::err::reply_err;
 use crate::reply::ok::reply_ok;
-use crate::state::CONFIG;
 use crate::sudo::ibc_lifecycle_complete::ibc_lifecycle_complete;
-use crate::types::Config;
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
     to_binary, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,

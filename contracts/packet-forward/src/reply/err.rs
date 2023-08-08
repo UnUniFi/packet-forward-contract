@@ -1,8 +1,5 @@
 use crate::error::ContractError;
-use crate::state::INITIATED_REQUESTS;
-use crate::state::SUB_MSG_TYPE;
-use crate::types::SubMsgId;
-use crate::types::SubMsgType;
+use packet_forward_types::packet_forward::{INITIATED_REQUESTS, SUB_MSG_TYPE, SubMsgId, SubMsgType};
 use cosmwasm_std::{DepsMut, Response};
 
 #[cfg(not(feature = "library"))]

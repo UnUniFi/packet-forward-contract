@@ -1,11 +1,11 @@
 use crate::error::ContractError;
 use crate::memo::construct_packet_memo;
-use crate::msgs::SwapMsg;
-use crate::state::CONFIG;
 use cosmwasm_std::{to_binary, BankMsg, WasmMsg};
 use cosmwasm_std::{Coin, DepsMut, Env, MessageInfo, Response};
 use cosmwasm_std::{CosmosMsg, Decimal, Uint128};
-use packet_forward::msgs::ForwardMsg;
+use packet_forward_types::denom_resolver::{CONFIG, SwapMsg};
+use packet_forward_types::packet_forward::ForwardMsg;
+
 
 #[cfg(not(feature = "library"))]
 pub fn execute_swap(

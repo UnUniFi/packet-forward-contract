@@ -1,7 +1,5 @@
 use cosmwasm_schema::cw_serde;
-use cosmwasm_std::Addr;
-use cosmwasm_std::Decimal;
-use cosmwasm_std::Uint128;
+use cosmwasm_std::{Addr, Decimal, Uint128};
 use std::time::Duration;
 
 #[cw_serde]

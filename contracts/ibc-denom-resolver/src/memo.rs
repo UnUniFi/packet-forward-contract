@@ -1,7 +1,6 @@
 use crate::error::ContractError;
-use crate::types::{Destination, Route};
-use crate::types::{IbcHooksMetadata, Memo, Msg, PacketForwardMetadata};
-use packet_forward::msgs::ForwardMsg;
+use packet_forward_types::denom_resolver::{Destination, Route, IbcHooksMetadata, Memo, Msg, PacketForwardMetadata};
+use packet_forward_types::packet_forward::ForwardMsg;
 use std::time::Duration;
 
 #[cfg(not(feature = "library"))]
@@ -66,8 +65,8 @@ pub fn construct_packet_memo(
 mod tests {
     use std::time::Duration;
 
-    use crate::types::{Destination, Route};
-    use packet_forward::msgs::ForwardMsg;
+    use packet_forward_types::denom_resolver::{Destination, Route, IbcHooksMetadata, Memo, Msg, PacketForwardMetadata};
+    use packet_forward_types::packet_forward::ForwardMsg;
 
     use super::construct_packet_memo;
 

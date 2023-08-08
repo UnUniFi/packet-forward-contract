@@ -1,6 +1,5 @@
 use crate::error::ContractError;
-use crate::msgs::ClaimFailedRequestMsg;
-use crate::state::FAILED_REQUESTS;
+use packet_forward_types::packet_forward::{ClaimFailedRequestMsg, FAILED_REQUESTS};
 use cosmwasm_std::{BankMsg, CosmosMsg};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 

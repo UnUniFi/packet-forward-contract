@@ -1,10 +1,9 @@
 use crate::{
     error::ContractError,
-    execute::{swap::execute_swap, update_config::execute_update_config},
-    msgs::{ExecuteMsg, InstantiateMsg, QueryMsg},
-    query::config::query_config,
-    state::CONFIG,
-    types::{Config, Destination},
+    execute::{swap::execute_swap, update_config::execute_update_config}, query::config::query_config,
+};
+use packet_forward_types::denom_resolver::{
+    ExecuteMsg, InstantiateMsg, QueryMsg, CONFIG, Config, Destination,
 };
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{to_binary, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdResult};

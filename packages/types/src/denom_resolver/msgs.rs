@@ -1,4 +1,4 @@
-use crate::types::{Config, FeeConfig, Route};
+use crate::denom_resolver::types::{Config, FeeConfig, Route};
 use cosmwasm_schema::{cw_serde, QueryResponses};
 use std::time::Duration;
 

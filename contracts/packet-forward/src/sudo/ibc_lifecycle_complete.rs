@@ -1,8 +1,7 @@
-use crate::{
-    error::ContractError,
-    ibc_hooks::IBCLifecycleComplete,
-    state::{FAILED_REQUESTS, PENDING_REQUESTS},
+use packet_forward_types::packet_forward::{
+    IBCLifecycleComplete,FAILED_REQUESTS, PENDING_REQUESTS
 };
+use crate::error::ContractError;
 use cosmwasm_std::{DepsMut, Env, Response};
 
 #[cfg(not(feature = "library"))]

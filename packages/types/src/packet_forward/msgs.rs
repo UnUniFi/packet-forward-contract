@@ -1,7 +1,8 @@
-use crate::{
+use crate::packet_forward::{
     ibc_hooks::IBCLifecycleComplete,
     types::{Config, FeeConfig, Request},
 };
+
 use cosmwasm_schema::{cw_serde, QueryResponses};
 use std::time::Duration;
 
