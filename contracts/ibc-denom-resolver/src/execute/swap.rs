@@ -29,11 +29,14 @@ pub fn execute_swap(
         config.fee.max,
     )?;
 
-    let treasury_msg = CosmosMsg::Bank(BankMsg::Send {
-        to_address: config.treasury.to_string(),
-        amount: vec![Coin::new(fee.u128(), coin.denom.clone())],
-    });
-    response = response.add_message(treasury_msg);
+    if !fee.is_zero() {
+        // fee subtraction may happen separately from the forward process.
+        let treasury_msg = CosmosMsg::Bank(BankMsg::Send {
+            to_address: config.treasury.to_string(),
+            amount: vec![Coin::new(fee.u128(), coin.denom.clone())],
+        });
+        response = response.add_message(treasury_msg);
+    }
 
     let memo = construct_packet_memo(&msg.receivers, &config.routes, &config.timeout)?;
 

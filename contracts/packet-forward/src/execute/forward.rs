@@ -34,12 +34,15 @@ pub fn execute_forward(
 
     let (fee, subtracted) = fee_and_subtracted(coin.amount, config.fee.commission_rate)?;
 
-    let treasury_msg = CosmosMsg::Bank(BankMsg::Send {
-        to_address: config.treasury.to_string(),
-        amount: vec![Coin::new(fee.u128(), coin.denom.clone())],
-    });
-
-    response = response.add_message(treasury_msg);
+    if !fee.is_zero() {
+        // fee subtraction may happen separately from the swap process.
+        // But, as of forward, there's high probability that the fee rate will be set at 0.
+        let treasury_msg = CosmosMsg::Bank(BankMsg::Send {
+            to_address: config.treasury.to_string(),
+            amount: vec![Coin::new(fee.u128(), coin.denom.clone())],
+        });
+        response = response.add_message(treasury_msg);
+    }
 
     let sdk_coin = crate::proto::cosmos::base::v1beta1::Coin {
         denom: coin.denom.clone(),
