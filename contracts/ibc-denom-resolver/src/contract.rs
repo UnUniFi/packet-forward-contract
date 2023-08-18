@@ -31,7 +31,8 @@ pub fn instantiate(
 
     let config = Config {
         owner: info.sender,
-        denom: msg.denom,
+        input_denom: msg.input_denom,
+        output_denom: msg.output_denom,
         first_forward_contract,
         routes: msg.routes,
         treasury,

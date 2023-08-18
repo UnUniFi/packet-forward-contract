@@ -4,7 +4,8 @@ use std::time::Duration;
 
 #[cw_serde]
 pub struct InstantiateMsg {
-    pub denom: String,
+    pub input_denom: String,
+    pub output_denom: String,
     pub first_forward_contract: String,
     pub routes: Vec<Route>,
     pub treasury: String,

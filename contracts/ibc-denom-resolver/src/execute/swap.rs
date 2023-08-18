@@ -22,8 +22,8 @@ pub fn execute_swap(
         return Err(ContractError::InvalidReceiversLength);
     }
 
-    if !is_correct_denom(&coin.denom, &config.denom) {
-        ContractError::WrongDenom(coin.denom.clone(), config.denom.clone());
+    if !is_correct_denom(&coin.denom, &config.input_denom) {
+        ContractError::WrongDenom(coin.denom.clone(), config.input_denom.clone());
     }
 
     let (fee, subtracted) = fee_and_subtracted(

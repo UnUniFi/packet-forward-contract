@@ -7,7 +7,8 @@ use std::time::Duration;
 #[cw_serde]
 pub struct Config {
     pub owner: Addr,
-    pub denom: String,
+    pub input_denom: String,
+    pub output_denom: String,
     pub first_forward_contract: Addr,
     pub routes: Vec<Route>,
     pub treasury: Addr,
