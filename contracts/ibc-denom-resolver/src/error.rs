@@ -27,4 +27,7 @@ pub enum ContractError {
 
     #[error("Route is designated only for terminal")]
     InvalidRoutes,
+
+    #[error("Wrong denom: {0}, expected: {1}")]
+    WrongDenom(String, String),
 }

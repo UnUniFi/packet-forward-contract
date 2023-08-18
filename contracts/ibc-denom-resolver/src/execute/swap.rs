@@ -22,6 +22,10 @@ pub fn execute_swap(
         return Err(ContractError::InvalidReceiversLength);
     }
 
+    if !is_correct_denom(&coin.denom, &config.denom) {
+        ContractError::WrongDenom(coin.denom.clone(), config.denom.clone());
+    }
+
     let (fee, subtracted) = fee_and_subtracted(
         coin.amount,
         config.fee.commission_rate,
@@ -75,4 +79,9 @@ fn fee_and_subtracted(
     let subtracted = amount.checked_sub(fee)?;
 
     Ok((fee, subtracted))
+}
+
+#[cfg(not(feature = "library"))]
+fn is_correct_denom(swapping_denom: &str, correct_denom: &str) -> bool {
+    swapping_denom == correct_denom
 }
