@@ -72,7 +72,7 @@ fn fee_and_subtracted(
     max: Uint128,
 ) -> Result<(Uint128, Uint128), ContractError> {
     let fee = commission_rate
-        .checked_mul(Decimal::new(amount))?
+        .checked_mul(Decimal::from_atomics(amount, 0).unwrap())?
         .to_uint_floor()
         .min(min)
         .max(max);
