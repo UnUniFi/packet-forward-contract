@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 use cosmwasm_std::{Decimal, Uint128, Coin, CosmosMsg, BankMsg, SubMsg};
 use cosmwasm_std::testing::{mock_env, mock_info};
 use cw_utils::one_coin;
