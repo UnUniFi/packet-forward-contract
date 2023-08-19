@@ -24,4 +24,7 @@ pub enum ContractError {
 
     #[error("The length of receivers must be same to the length of routes")]
     InvalidReceiversLength,
+
+    #[error("Route is designated only for terminal")]
+    InvalidRoutes,
 }

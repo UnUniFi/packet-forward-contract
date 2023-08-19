@@ -59,7 +59,11 @@ pub fn construct_packet_memo(
         last_channel = &route.src_channel;
     }
 
-    Ok(memo.clone().unwrap())
+    if let Some(memo_content) = memo {
+        Ok(memo_content.clone())
+    } else {
+        Err(ContractError::InvalidRoutes)
+    }
 }
 
 #[cfg(test)]
