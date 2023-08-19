@@ -7,7 +7,7 @@ use crate::query::config::query_config;
 use crate::query::failed_requests::query_failed_requests;
 use crate::reply::err::reply_err;
 use crate::reply::ok::reply_ok;
-use crate::state::CONFIG;
+use crate::state::{CONFIG, SUB_MSG_ID, REQUEST_ID};
 use crate::sudo::ibc_lifecycle_complete::ibc_lifecycle_complete;
 use crate::types::Config;
 use cosmwasm_std::entry_point;
@@ -33,6 +33,10 @@ pub fn instantiate(
     };
 
     CONFIG.save(deps.storage, &config)?;
+
+    // Instantiate kvstores
+    SUB_MSG_ID.save(deps.storage, &0)?;
+    REQUEST_ID.save(deps.storage, &0)?;
 
     Ok(Response::new())
 }
