@@ -1,12 +1,10 @@
-use std::time::Duration;
-
 use cosmwasm_std::{Decimal, Uint128};
 use cosmwasm_std::testing::{mock_env, mock_info};
 use helpers::th_query;
-use ibc_denom_resolver::error::ContractError;
-use ibc_denom_resolver::msgs::{QueryMsg, UpdateConfigMsg};
-use ibc_denom_resolver::execute::update_config::execute_update_config;
-use ibc_denom_resolver::types::{Config, FeeConfig};
+use packet_forward::error::ContractError;
+use packet_forward::msgs::{QueryMsg, UpdateConfigMsg};
+use packet_forward::execute::update_config::execute_update_config;
+use packet_forward::types::{Config, FeeConfig};
 
 use crate::helpers::setup;
 
@@ -18,7 +16,6 @@ fn initialized_state() {
 
     let config: Config = th_query(deps.as_ref(), QueryMsg::Config {});
     assert_eq!(Decimal::zero(), config.fee.commission_rate);
-    assert_eq!("ibc/uguu", config.input_denom);
 }
 
 #[test]
@@ -37,7 +34,6 @@ fn update_config() {
                 owner: Some(String::from("ununifi1v2k8kt24uqes5l5js772eamzahpg53p38jytlj")),
                 treasury: None,
                 fee: None,
-                timeout: None,
             },
         )
         .unwrap();
@@ -52,8 +48,6 @@ fn update_config() {
         // Change with other values for further tests
         let new_fee_conf = FeeConfig {
             commission_rate: Decimal::one(),
-            min: Uint128::one(),
-            max: Uint128::one().checked_add(Uint128::one()).unwrap(),
         };
         execute_update_config(
             deps.as_mut(),
@@ -63,7 +57,6 @@ fn update_config() {
                 owner: Some(String::from("ununifi13vs27vvzhdljpexf5zc2zs5vs66yywq8gu8g0x")),
                 treasury: Some(String::from("ununifi13e0tws93sujjg40052a5jew4933saa9qksn7jn")),
                 fee: Some(new_fee_conf.clone()),
-                timeout: Some(Duration::from_secs(7200 as u64)),
             },
         )
         .unwrap();
@@ -73,7 +66,6 @@ fn update_config() {
         assert_eq!("ununifi13vs27vvzhdljpexf5zc2zs5vs66yywq8gu8g0x", config.owner);
         assert_eq!("ununifi13e0tws93sujjg40052a5jew4933saa9qksn7jn", config.treasury);
         assert_eq!(new_fee_conf, config.fee);
-        assert_eq!(Duration::from_secs(7200 as u64), config.timeout);
     }
 
     {
@@ -86,7 +78,6 @@ fn update_config() {
                     owner: None,
                     treasury: None,
                     fee: None,
-                    timeout: None,
                 },
             )
             .unwrap_err();

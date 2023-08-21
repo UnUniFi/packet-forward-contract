@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 use cosmwasm_std::{Decimal, Uint128, Coin, CosmosMsg, BankMsg, SubMsg};
 use cosmwasm_std::testing::{mock_env, mock_info};
 use cw_utils::one_coin;
@@ -86,7 +84,7 @@ pub fn swap() {
         let swap_msg = SwapMsg {
             receivers: receivers.clone(),
         };
-        let info = mock_info(sender, &[Coin{denom: String::from("uguu"), amount: Uint128::from(100 as u32)}]);
+        let info = mock_info(sender, &[Coin{denom: String::from("ibc/uguu"), amount: Uint128::from(100 as u32)}]);
 
         let res = execute_swap(
             deps.as_mut(),
@@ -100,7 +98,7 @@ pub fn swap() {
         let config: Config = th_query(deps.as_ref(), QueryMsg::Config {});
         let send_msg = SubMsg::new(CosmosMsg::Bank(BankMsg::Send {
             to_address: config.treasury.to_string(),
-            amount: vec![Coin::new(2 as u128, config.denom.clone())],
+            amount: vec![Coin::new(2 as u128, config.input_denom.clone())],
         }));
         assert_eq!(res.messages[0], send_msg)
     }

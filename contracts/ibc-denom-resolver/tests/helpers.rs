@@ -54,7 +54,8 @@ pub fn setup() -> OwnedDeps<MockStorage, MockApi, MockQuerier> {
         // Cosmos Hub
     ];
     let instantiate_msg = InstantiateMsg {
-        denom: String::from("uguu"), // random leteral
+        input_denom: String::from("ibc/uguu"), // random leteral
+        output_denom: String::from("uguu"), // random leteral
         first_forward_contract: String::from("ununifi14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9sm5z28e"), // random address
         routes: routes,
         timeout: Duration::from_secs(DEFAULT_TIMEOUT),
