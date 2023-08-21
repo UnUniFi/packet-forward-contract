@@ -79,6 +79,7 @@ fn test_execute_forward() {
         )
             .unwrap();
 
+            println!("{:?}", res);
         assert_eq!(2, res.messages.len());
 
         let sub_msg_id = SUB_MSG_ID.load(deps.as_ref().storage).unwrap();
@@ -86,5 +87,4 @@ fn test_execute_forward() {
         let request_id = REQUEST_ID.load(deps.as_ref().storage).unwrap();
         assert_eq!(2, request_id);
     }
-
 }

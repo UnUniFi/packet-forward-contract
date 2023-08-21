@@ -18,7 +18,7 @@ fn initialized_state() {
 
     let config: Config = th_query(deps.as_ref(), QueryMsg::Config {});
     assert_eq!(Decimal::zero(), config.fee.commission_rate);
-    assert_eq!("uguu", config.denom);
+    assert_eq!("ibc/uguu", config.input_denom);
 }
 
 #[test]
