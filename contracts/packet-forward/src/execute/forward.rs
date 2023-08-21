@@ -102,7 +102,7 @@ fn fee_and_subtracted(
     commission_rate: Decimal,
 ) -> Result<(Uint128, Uint128), ContractError> {
     let fee = commission_rate
-        .checked_mul(Decimal::new(amount))?
+        .checked_mul(Decimal::from_atomics(amount, 0).unwrap())?
         .to_uint_floor();
     let subtracted = amount.checked_sub(fee)?;
 
