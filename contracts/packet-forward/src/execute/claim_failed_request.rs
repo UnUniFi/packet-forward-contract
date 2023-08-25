@@ -4,7 +4,7 @@ use crate::state::FAILED_REQUESTS;
 use cosmwasm_std::{BankMsg, CosmosMsg};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
-#[cfg(not(feature = "library"))]
+// #[cfg(not(feature = "library"))]
 pub fn execute_claim_failed_request(
     deps: DepsMut,
     _env: Env,

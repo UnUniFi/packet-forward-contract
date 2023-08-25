@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [lib]
-crate-type = ["rlib"]
+crate-type = ["rlib", "cdylib"]
 
 [features]
 # use library feature to disable all instantiate/execute/query exports
@@ -19,4 +19,4 @@ thiserror = "1.0"
 cw-storage-plus = "1.1.0"
 cw-utils = "1.0.1"
 serde-json-wasm = "1.0.0"
-packet-forward = { path = "../packet-forward" }
+packet-forward = { path = "../packet-forward", features = ["library"] }

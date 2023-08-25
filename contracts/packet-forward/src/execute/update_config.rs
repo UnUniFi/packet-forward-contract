@@ -5,7 +5,7 @@ use crate::types::Config;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 /// Only owner can execute it.
-#[cfg(not(feature = "library"))]
+// #[cfg(not(feature = "library"))]
 pub fn execute_update_config(
     deps: DepsMut,
     _env: Env,
