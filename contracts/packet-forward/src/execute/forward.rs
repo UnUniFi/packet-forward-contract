@@ -18,7 +18,7 @@ use std::collections::BTreeMap;
 
 const TRANSFER_PORT: &str = "transfer";
 
-#[cfg(not(feature = "library"))]
+// #[cfg(not(feature = "library"))]
 pub fn execute_forward(
     deps: DepsMut,
     env: Env,
@@ -96,7 +96,7 @@ pub fn execute_forward(
     Ok(response)
 }
 
-#[cfg(not(feature = "library"))]
+// #[cfg(not(feature = "library"))]
 fn fee_and_subtracted(
     amount: Uint128,
     commission_rate: Decimal,
@@ -109,7 +109,7 @@ fn fee_and_subtracted(
     Ok((fee, subtracted))
 }
 
-#[cfg(not(feature = "library"))]
+// #[cfg(not(feature = "library"))]
 fn insert_ibc_callback(memo: &str, contract: &str) -> String {
     let mut memo_object: BTreeMap<String, Value> =
         serde_json_wasm::from_str(memo).unwrap_or_default();

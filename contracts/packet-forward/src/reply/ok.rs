@@ -7,7 +7,7 @@ use crate::types::SubMsgType;
 use cosmwasm_std::{DepsMut, Response, SubMsgResponse};
 use prost::Message;
 
-#[cfg(not(feature = "library"))]
+// #[cfg(not(feature = "library"))]
 pub fn reply_ok(
     deps: DepsMut,
     id: SubMsgId,

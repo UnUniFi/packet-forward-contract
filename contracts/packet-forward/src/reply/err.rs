@@ -5,7 +5,7 @@ use crate::types::SubMsgId;
 use crate::types::SubMsgType;
 use cosmwasm_std::{DepsMut, Response};
 
-#[cfg(not(feature = "library"))]
+// #[cfg(not(feature = "library"))]
 pub fn reply_err(deps: DepsMut, id: SubMsgId, _err: String) -> Result<Response, ContractError> {
     let mut response = Response::new();
 
