@@ -6,6 +6,7 @@ use cosmwasm_std::{to_binary, BankMsg, WasmMsg};
 use cosmwasm_std::{Coin, DepsMut, Env, MessageInfo, Response};
 use cosmwasm_std::{CosmosMsg, Decimal, Uint128};
 use packet_forward::msgs::ForwardMsg;
+use packet_forward::msgs::ExecuteMsg as PacketForwardMsg;
 
 #[cfg(not(feature = "library"))]
 pub fn execute_swap(
@@ -46,14 +47,14 @@ pub fn execute_swap(
 
     let forward_msg = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: config.first_forward_contract.to_string(),
-        msg: to_binary(&ForwardMsg {
+        msg: to_binary(&PacketForwardMsg::Forward(ForwardMsg {
             emergency_claimer: info.sender.to_string(),
             receiver: msg.receivers[0].clone(),
             port: config.routes[0].src_port.clone(),
             channel: config.routes[0].src_channel.clone(),
             timeout: config.timeout.clone(),
             memo: serde_json_wasm::to_string(&memo).unwrap(),
-        })?,
+        }))?,
         funds: vec![Coin::new(subtracted.u128(), coin.denom.clone())],
     });
     response = response.add_message(forward_msg);
